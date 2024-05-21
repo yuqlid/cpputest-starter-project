@@ -1,6 +1,7 @@
 #Set this to @ to keep the makefile quiet
 SILENCE = @
 
+CPPUTEST_HOME = ../cpputest
 #---- Outputs ----#
 COMPONENT_NAME = your
 
@@ -40,7 +41,7 @@ TEST_SRC_FILES +=
 TEST_SRC_DIRS += tests
 TEST_SRC_DIRS += tests/io-cppumock
 TEST_SRC_DIRS += tests/printf-spy
-
+#
 #	tests/example-fff \
 #	tests/fff \
 
@@ -61,6 +62,7 @@ INCLUDE_DIRS += example-include
 INCLUDE_DIRS += example-fff
 INCLUDE_DIRS += tests/exploding-fakes
 INCLUDE_DIRS += tests/fff
+INCLUDE_DIRS += ../App
 
 
 # --- CPPUTEST_OBJS_DIR ---
@@ -122,7 +124,7 @@ CPPUTEST_CFLAGS += -pedantic
 CPPUTEST_CFLAGS += -Wno-missing-prototypes
 CPPUTEST_CFLAGS += -Wno-strict-prototypes
 CPPUTEST_CXXFLAGS += -Wno-c++14-compat
-CPPUTEST_CXXFLAGS += --std=c++11
+CPPUTEST_CXXFLAGS += --std=c++17
 CPPUTEST_CXXFLAGS += -Wno-c++98-compat-pedantic
 CPPUTEST_CXXFLAGS += -Wno-c++98-compat
 
