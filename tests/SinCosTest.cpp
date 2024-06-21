@@ -28,9 +28,9 @@ TEST_GROUP(SinCos){void setup(){}
                    void teardown(){}};
 
 TEST(SinCos, test1) {
-  float y = nick_sincos::sin(static_cast<float>(pi / 2));
-  std::cout << y << std::endl;
-  CHECK(y <= 1);
+  auto [sin, cos] = nick_sincos::sincos(static_cast<float>(pi / 2));
+  std::cout << sin << std::endl;
+  CHECK(sin <= 1);
 }
 
 TEST(SinCos, test2) {
