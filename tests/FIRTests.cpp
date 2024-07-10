@@ -30,8 +30,7 @@ TEST(FIR, test1) {
   std::ofstream outfile("fir_test.csv");
   // ファイルが正しく開けたか確認する
   if (!outfile) {
-    std::cerr << "file open failed" << std::endl;
-    // return 1; // エラーを示す
+    FAIL("file open failed");
   }
 
   for (int i = 0; i < period; ++i) {

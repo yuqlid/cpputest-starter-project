@@ -49,8 +49,7 @@ TEST(SVM, test2) {
 
   // ファイルが正しく開けたか確認する
   if (!outfile) {
-    std::cerr << "file open failed" << std::endl;
-    // return 1; // エラーを示す
+    FAIL("file open failed");
   }
   outfile << "theta, a, b, svm_u, svm_v, svm_w , u, v, w, svm_uv, svm_vw, "
              "svm_wu, uv, vw, wu"

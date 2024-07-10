@@ -40,8 +40,7 @@ TEST(SinCos, test2) {
 
   // ファイルが正しく開けたか確認する
   if (!outfile) {
-    std::cerr << "file open failed" << std::endl;
-    // return 1; // エラーを示す
+    FAIL("file open failed");
   }
   outfile << "theta, sin(theta), cos(theta)" << std::endl;
   // forループで計算し、結果をファイルに書き込む
