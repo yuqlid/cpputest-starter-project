@@ -1,4 +1,5 @@
 #include <cmath>
+#include <complex>
 #include <fstream>
 #include <iostream>
 
@@ -17,7 +18,7 @@ TEST_GROUP(LPF){void setup(){}
 
                 void teardown(){}};
 
-TEST(LPF, test1) {
+TEST(LPF, step_response) {
   constexpr uint16_t period = 256;
   float x[period];
   constexpr float fs_hz = 20000.0f;
@@ -48,4 +49,56 @@ TEST(LPF, test1) {
   outfile.close();
 
   std::cout << "stored lpf_test.csv" << std::endl;
+}
+
+TEST(LPF, transfer_function) {
+  constexpr float pi = 3.14159265358979323846264338327950288;
+
+  constexpr float fs_hz = 100000.0f;  //!< サンプリング周波数　unit : Hz
+  constexpr float fc_hz = 1000.0f;    //!< カットオフ周波数　unit : Hz
+  constexpr uint32_t omega_rads = fs_hz / 2 * 2 * pi;  //!< unit : rad/s
+
+  constexpr std::complex<float> ts(1.0f / fs_hz, 0.0f);
+  constexpr std::complex<float> two_tc(2.0f / (2.0f * pi * fc_hz), 0.0f);
+
+  // 一次ローパスフィルタ係数　分母
+  std::complex<float> a0(1.0f, 0.0f);
+  std::complex<float> a1((ts - two_tc) / (ts + two_tc));
+
+  // 一次ローパスフィルタ係数　分子
+  std::complex<float> b0(ts / (two_tc + ts));
+  std::complex<float> b1(b0);
+
+  std::ofstream outfile("lpf_tf.csv");
+  // ファイルが正しく開けたか確認する
+  if (!outfile) {
+    FAIL("file open failed");
+  }
+  outfile << "f[Hz],gain[dB],phase[deg]" << std::endl;
+
+  // forループで計算し、結果をファイルに書き込む
+  for (uint32_t i = 1; i < omega_rads; ++i) {
+    /**
+     * @brief z^-1 = exp(-j*omega*Ts)を計算する
+     */
+    std::complex<float> jtheta(0.0f, static_cast<float>(i) / fs_hz);
+    std::complex<float> inv_z(std::exp(-jtheta));
+
+    std::complex<float> lpf((b0 + b1 * inv_z) / (a0 + a1 * inv_z));
+    /**
+     * @brief 周波数応答を計算する。
+     *
+     */
+    outfile << static_cast<float>(i) / (2.0f * pi)
+            << ", "  //!< 周波数　unit : Hz
+            << 20 * std::log10(std::abs(lpf))
+            << ", "  //!< 振幅　20*log　unit : dB
+            << 180.0 * std::arg(lpf) / pi
+            << std::endl;  //!< 位相　unit : degree
+  }
+
+  // ファイルを閉じる
+  outfile.close();
+
+  std::cout << "stored lpf_tf.csv" << std::endl;
 }
