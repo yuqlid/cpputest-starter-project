@@ -24,8 +24,8 @@ TEST(BiQuad, step_response) {
   constexpr float fs_hz = 2000.0f;
   constexpr float ts = 1 / fs_hz;
   constexpr float pi = 3.14159265358979323846264338327950288;
-  constexpr float omega_pll = 2 * pi * 10;
-  constexpr float zeta_pll = 0.5f;
+  constexpr float omega_pll = 2 * pi * 100;
+  constexpr float zeta_pll = 1.0f;
 
   constexpr float num = 1 + zeta_pll * omega_pll * ts +
                         ((omega_pll * ts / 2) * (omega_pll * ts / 2));
@@ -51,6 +51,7 @@ TEST(BiQuad, step_response) {
 
   // 入力波形の時系列データ作成
   for (int i = 0; i < period; ++i) {
+    // ステップ入力
     x[i] = 0.0f;
     if (i > 100) {
       x[i] = 1.0f;
@@ -66,5 +67,5 @@ TEST(BiQuad, step_response) {
   // ファイルを閉じる
   outfile.close();
 
-  std::cout << "stored lpf_test.csv" << std::endl;
+  std::cout << "stored biquad_iir.csv" << std::endl;
 }
