@@ -44,3 +44,4 @@ Debug
 *.sublime-*
 
 result.csv
+*.csv
