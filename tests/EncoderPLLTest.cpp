@@ -28,7 +28,7 @@ TEST(EncoderPLL, step_response_delta_theta) {
   constexpr float fs_hz = 20000.0f;
   constexpr float ts = 1 / fs_hz;
   constexpr float pi = 3.14159265358979323846264338327950288;
-  constexpr float omega_pll = 2 * pi * 100;
+  constexpr float omega_pll = 2 * pi * 1000;
   constexpr float zeta_pll = 1.0f;
   constexpr float kp = 2 * zeta_pll * omega_pll;
   constexpr float ki = omega_pll * omega_pll;
@@ -82,7 +82,7 @@ TEST(EncoderPLL, step_response_theta) {
   constexpr float fs_hz = 20000.0f;
   constexpr float ts = 1 / fs_hz;
   constexpr float pi = 3.14159265358979323846264338327950288;
-  constexpr float omega_pll = 2 * pi * 100;
+  constexpr float omega_pll = 2 * pi * 1000;
   constexpr float zeta_pll = 1.0f;
   constexpr float kp = 2 * zeta_pll * omega_pll;
   constexpr float ki = omega_pll * omega_pll;

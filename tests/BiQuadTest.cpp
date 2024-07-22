@@ -27,11 +27,13 @@ TEST(BiQuad, step_response) {
   constexpr float omega_pll = 2 * pi * 100;
   constexpr float zeta_pll = 1.0f;
 
+  static_assert(zeta_pll > 0, "dumping ratio must be more than 0");
   constexpr float num = 1 + zeta_pll * omega_pll * ts +
                         ((omega_pll * ts / 2) * (omega_pll * ts / 2));
   constexpr float b0 = ((omega_pll * ts / 2) * (omega_pll * ts / 2)) / num;
   constexpr float b1 = 2 * b0;
   constexpr float b2 = b0;
+
 
   constexpr float a1 =
       2 * (1 - ((omega_pll * ts / 2) * (omega_pll * ts / 2))) / num;
