@@ -1,3 +1,4 @@
+#include <array>
 #include <cmath>
 #include <complex>
 #include <fstream>
@@ -19,8 +20,6 @@ TEST_GROUP(LPF){void setup(){}
                 void teardown(){}};
 
 TEST(LPF, step_response) {
-  constexpr uint16_t period = 256;
-  float x[period];
   constexpr float fs_hz = 20000.0f;
   constexpr float fc_hz = 1000.0f;
   FirstOrderLpf<float> lpf(fs_hz, fc_hz);
@@ -32,10 +31,12 @@ TEST(LPF, step_response) {
   }
 
   // 入力波形の時系列データ作成
+  constexpr uint16_t period = 256;
+  std::array<uint16_t, period> x;
   for (int i = 0; i < period; ++i) {
-    x[i] = 0.0f;
-    if (i > 10) {
-      x[i] = 1.0f;
+    x.at(i) = 0.0f;
+    if (i > 100) {
+      x.at(i) = 1.0f;
     }
   }
 

@@ -19,8 +19,6 @@ TEST_GROUP(BiQuad){void setup(){}
                    void teardown(){}};
 
 TEST(BiQuad, step_response) {
-  constexpr uint16_t period = 512;
-  float x[period];
   constexpr float fs_hz = 2000.0f;
   constexpr float ts = 1 / fs_hz;
   constexpr float pi = 3.14159265358979323846264338327950288;
@@ -33,7 +31,6 @@ TEST(BiQuad, step_response) {
   constexpr float b0 = ((omega_pll * ts / 2) * (omega_pll * ts / 2)) / num;
   constexpr float b1 = 2 * b0;
   constexpr float b2 = b0;
-
 
   constexpr float a1 =
       2 * (1 - ((omega_pll * ts / 2) * (omega_pll * ts / 2))) / num;
@@ -52,19 +49,22 @@ TEST(BiQuad, step_response) {
   }
 
   // 入力波形の時系列データ作成
+  constexpr uint16_t period = 512;
+  std::array<float, period> x;
+  
   for (int i = 0; i < period; ++i) {
     // ステップ入力
-    x[i] = 0.0f;
+    x.at(i) = 0.0f;
     if (i > 100) {
-      x[i] = 1.0f;
+      x.at(i) = 1.0f;
     }
   }
 
   outfile << "tims,in,out" << std::endl;
 
   for (size_t i = 0; i < period; ++i) {
-    outfile << static_cast<float>(i) / fs_hz << ", " << x[i] << ", "
-            << iir.update(x[i]) << std::endl;
+    outfile << static_cast<float>(i) / fs_hz << ", " << x.at(i) << ", "
+            << iir.update(x.at(i)) << std::endl;
   }
   // ファイルを閉じる
   outfile.close();

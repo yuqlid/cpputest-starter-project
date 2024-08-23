@@ -1,3 +1,4 @@
+#include <array>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -59,7 +60,7 @@ TEST(Observer, input_step) {
   for (int i = 0; i < period; ++i) {
     float theta_temp = pi / 2;
     if (i == 0) theta_temp = 0.0f;
-    theta_meas[i] = wrapAngle<float>(theta_temp);
+    theta_meas.at(i) = wrapAngle<float>(theta_temp);
   }
 
   outfile << "tims,theta_in,theta_morimoto,theta_tm,theta_odrive,vel_in,vel_"
@@ -67,9 +68,9 @@ TEST(Observer, input_step) {
           << std::endl;
 
   for (size_t i = 0; i < period; ++i) {
-    Observer1.process(theta_meas[i]);
-    Observer2.process(theta_meas[i]);
-    outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas[i] << ", "
+    Observer1.process(theta_meas.at(i));
+    Observer2.process(theta_meas.at(i));
+    outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas.at(i) << ", "
             << Observer1.getPos() << ", " << Observer2.getPos() << ", " << vel
             << ", " << Observer1.getVel() << ", " << Observer2.getVel()
             << std::endl;
@@ -97,7 +98,7 @@ TEST(Observer, input_sinwave) {
   constexpr float two_pi = 2.0f * pi;
   // 入力波形の時系列データ作成
   for (int i = 0; i < period; ++i) {
-    theta_meas[i] = wrapAngle<float>(std::sin(two_pi * i / period));
+    theta_meas.at(i) = wrapAngle<float>(std::sin(two_pi * i / period));
   }
 
   outfile << "tims,theta_in,theta_morimoto,theta_tm,theta_odrive,vel_in,vel_"
@@ -105,9 +106,9 @@ TEST(Observer, input_sinwave) {
           << std::endl;
 
   for (size_t i = 0; i < period; ++i) {
-    Observer1.process(theta_meas[i]);
-    Observer2.process(theta_meas[i]);
-    outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas[i] << ", "
+    Observer1.process(theta_meas.at(i));
+    Observer2.process(theta_meas.at(i));
+    outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas.at(i) << ", "
             << Observer1.getPos() << ", " << Observer2.getPos() << ", " << vel
             << ", " << Observer1.getVel() << ", " << Observer2.getVel()
             << std::endl;
@@ -135,7 +136,7 @@ TEST(Observer, input_ramp) {
   // 入力波形の時系列データ作成
   for (int i = 0; i < period; ++i) {
     float theta_temp = i * vel / fs_hz + 0.0f;
-    theta_meas[i] = wrapAngle<float>(theta_temp);
+    theta_meas.at(i) = wrapAngle<float>(theta_temp);
   }
 
   outfile << "tims,theta_in,theta_morimoto,theta_tm,theta_odrive,vel_in,vel_"
@@ -143,9 +144,9 @@ TEST(Observer, input_ramp) {
           << std::endl;
 
   for (size_t i = 0; i < period; ++i) {
-    Observer1.process(theta_meas[i]);
-    Observer2.process(theta_meas[i]);
-    outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas[i] << ", "
+    Observer1.process(theta_meas.at(i));
+    Observer2.process(theta_meas.at(i));
+    outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas.at(i) << ", "
             << Observer1.getPos() << ", " << Observer2.getPos() << ", " << vel
             << ", " << Observer1.getVel() << ", " << Observer2.getVel()
             << std::endl;

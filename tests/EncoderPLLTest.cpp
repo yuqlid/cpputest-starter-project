@@ -1,3 +1,4 @@
+#include <array>
 #include <cmath>
 #include <complex>
 #include <fstream>
@@ -23,8 +24,6 @@ TEST_GROUP(EncoderPLL){void setup(){}
  * ステップ入力時の偏差のテスト
  */
 TEST(EncoderPLL, step_response_delta_theta) {
-  constexpr uint16_t period = 512;
-  float x[period];
   constexpr float fs_hz = 20000.0f;
   constexpr float ts = 1 / fs_hz;
   constexpr float pi = 3.14159265358979323846264338327950288;
@@ -52,11 +51,14 @@ TEST(EncoderPLL, step_response_delta_theta) {
   }
 
   // 入力波形の時系列データ作成
+  constexpr uint16_t period = 512;
+  std::array<float, period> x;
+
   for (int i = 0; i < period; ++i) {
     // ステップ入力
-    x[i] = 0.0f;
+    x.at(i) = 0.0f;
     if (i > 100) {
-      x[i] = 1.0f;
+      x.at(i) = 1.0f;
     }
   }
 
@@ -77,8 +79,6 @@ TEST(EncoderPLL, step_response_delta_theta) {
  * ステップ入力時の出力のテスト
  */
 TEST(EncoderPLL, step_response_theta) {
-  constexpr uint16_t period = 512;
-  float x[period];
   constexpr float fs_hz = 20000.0f;
   constexpr float ts = 1 / fs_hz;
   constexpr float pi = 3.14159265358979323846264338327950288;
@@ -106,11 +106,14 @@ TEST(EncoderPLL, step_response_theta) {
   }
 
   // 入力波形の時系列データ作成
+  constexpr uint16_t period = 512;
+  std::array<float, period> x;
+  
   for (int i = 0; i < period; ++i) {
     // ステップ入力
-    x[i] = 0.0f;
+    x.at(i) = 0.0f;
     if (i > 100) {
-      x[i] = 1.0f;
+      x.at(i) = 1.0f;
     }
   }
 
