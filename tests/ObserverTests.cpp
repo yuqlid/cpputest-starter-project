@@ -45,7 +45,7 @@ TEST_GROUP(Observer){void setup(){}
 TEST(Observer, input_step) {
   constexpr uint16_t period = 1024;
   std::array<float, period> theta_meas;
-  motimoro_observer::Observer<float> Observer1(bandwitdh, 1.0f / fs_hz);
+  motimoro_observer::Observer<float> Observer1(bandwitdh, 100.0f, 1.0f / fs_hz);
   odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
   constexpr float vel_npm = 3000.0f;
   constexpr float vel = vel_npm * pi / 60.0f;  // rad/s
@@ -84,7 +84,7 @@ TEST(Observer, input_step) {
 TEST(Observer, input_sinwave) {
   constexpr uint16_t period = 1024;
   std::array<float, period> theta_meas;
-  motimoro_observer::Observer<float> Observer1(bandwitdh, 1.0f / fs_hz);
+  motimoro_observer::Observer<float> Observer1(bandwitdh, 100.0f,1.0f / fs_hz);
   odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
   constexpr float vel_npm = 1000.0f;
   float vel = vel_npm * pi / 60.0f;  // rad/s
@@ -122,7 +122,7 @@ TEST(Observer, input_sinwave) {
 TEST(Observer, input_ramp) {
   constexpr uint16_t period = 1024;
   std::array<float, period> theta_meas;
-  motimoro_observer::Observer<float> Observer1(bandwitdh, 1.0f / fs_hz);
+  motimoro_observer::Observer<float> Observer1(bandwitdh, 100.0f, 1.0f / fs_hz);
   odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
   constexpr float vel_npm = 3000.0f;
   constexpr float vel = vel_npm * pi / 60.0f;  // rad/s
