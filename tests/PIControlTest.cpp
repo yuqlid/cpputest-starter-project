@@ -95,11 +95,9 @@ TEST(PI, test1) {
     float error_2 = ref.at(i) - output_2.at(i);
     float input_1 = cc_1.process(error_1);
     float input_2 = cc_2.process(error_2);
-    // float p = PIConfig.gain.kp * error;
-    float input_clamp_1 = std::clamp(input_1, low, high);
-    float input_clamp_2 = std::clamp(input_2, low, high);
-    float out_1 = lpf_1.update(input_clamp_1);
-    float out_2 = lpf_2.update(input_clamp_2);
+
+    float out_1 = lpf_1.update(input_1);
+    float out_2 = lpf_2.update(input_2);
 
     output_1.at(i + 1) = out_1;
     output_2.at(i + 1) = out_2;
@@ -110,7 +108,7 @@ TEST(PI, test1) {
             << out_2 << ", " << std::endl;
     */
     outfile << static_cast<float>(i) / fs_hz << ", " << ref.at(i) << ", "
-            << input_clamp_1 << ", " << out_1 << ", " << input_clamp_2 << ", "
+            << input_1 << ", " << out_1 << ", " << input_2 << ", "
             << out_2 << ", " << std::endl;
   }
 
