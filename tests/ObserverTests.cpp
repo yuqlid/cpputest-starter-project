@@ -46,7 +46,8 @@ TEST(Observer, input_step) {
   constexpr uint16_t period = 1024;
   std::array<float, period> theta_meas;
   motimoro_observer::Observer<float> Observer1(bandwitdh, 100.0f, 1.0f / fs_hz);
-  odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
+  test_observer::Observer<float> Observer2(bandwitdh, 100.0f, 1.0f / fs_hz);
+  // odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
   constexpr float vel_npm = 3000.0f;
   constexpr float vel = vel_npm * pi / 60.0f;  // rad/s
 
@@ -62,9 +63,8 @@ TEST(Observer, input_step) {
     if (i == 0) theta_temp = 0.0f;
     theta_meas.at(i) = wrapAngle<float>(theta_temp);
   }
-
-  outfile << "tims,theta_in,theta_morimoto,theta_tm,theta_odrive,vel_in,vel_"
-             "morimoto,vel_tm,vel_odrive"
+  outfile << "tims,theta_in,theta_morimoto,theta_test,vel_in,vel_morimoto,vel_"
+             "test,temp0,temp1"
           << std::endl;
 
   for (size_t i = 0; i < period; ++i) {
@@ -72,7 +72,8 @@ TEST(Observer, input_step) {
     Observer2.process(theta_meas.at(i));
     outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas.at(i) << ", "
             << Observer1.getPos() << ", " << Observer2.getPos() << ", " << vel
-            << ", " << Observer1.getVel() << ", " << Observer2.getVel()
+            << ", " << Observer1.getVel() << ", " << Observer2.getVel() << ", "
+            << Observer1.getTemp0() << ", " << Observer1.getTemp1()
             << std::endl;
   }
   // ファイルを閉じる
@@ -84,8 +85,9 @@ TEST(Observer, input_step) {
 TEST(Observer, input_sinwave) {
   constexpr uint16_t period = 1024;
   std::array<float, period> theta_meas;
-  motimoro_observer::Observer<float> Observer1(bandwitdh, 100.0f,1.0f / fs_hz);
-  odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
+  motimoro_observer::Observer<float> Observer1(bandwitdh, 100.0f, 1.0f / fs_hz);
+  test_observer::Observer<float> Observer2(bandwitdh, 100.0f, 1.0f / fs_hz);
+  // odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
   constexpr float vel_npm = 1000.0f;
   float vel = vel_npm * pi / 60.0f;  // rad/s
 
@@ -101,8 +103,8 @@ TEST(Observer, input_sinwave) {
     theta_meas.at(i) = wrapAngle<float>(std::sin(two_pi * i / period));
   }
 
-  outfile << "tims,theta_in,theta_morimoto,theta_tm,theta_odrive,vel_in,vel_"
-             "morimoto,vel_tm,vel_odrive"
+  outfile << "tims,theta_in,theta_morimoto,theta_test,vel_in,vel_morimoto,vel_"
+             "test,temp0,temp1"
           << std::endl;
 
   for (size_t i = 0; i < period; ++i) {
@@ -110,7 +112,8 @@ TEST(Observer, input_sinwave) {
     Observer2.process(theta_meas.at(i));
     outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas.at(i) << ", "
             << Observer1.getPos() << ", " << Observer2.getPos() << ", " << vel
-            << ", " << Observer1.getVel() << ", " << Observer2.getVel()
+            << ", " << Observer1.getVel() << ", " << Observer2.getVel() << ", "
+            << Observer1.getTemp0() << ", " << Observer1.getTemp1()
             << std::endl;
   }
   // ファイルを閉じる
@@ -123,7 +126,8 @@ TEST(Observer, input_ramp) {
   constexpr uint16_t period = 1024;
   std::array<float, period> theta_meas;
   motimoro_observer::Observer<float> Observer1(bandwitdh, 100.0f, 1.0f / fs_hz);
-  odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
+  test_observer::Observer<float> Observer2(bandwitdh, 100.0f, 1.0f / fs_hz);
+  // odrive_observer::Observer Observer2(bandwitdh, 1 / fs_hz);
   constexpr float vel_npm = 3000.0f;
   constexpr float vel = vel_npm * pi / 60.0f;  // rad/s
 
@@ -139,8 +143,8 @@ TEST(Observer, input_ramp) {
     theta_meas.at(i) = wrapAngle<float>(theta_temp);
   }
 
-  outfile << "tims,theta_in,theta_morimoto,theta_tm,theta_odrive,vel_in,vel_"
-             "morimoto,vel_tm,vel_odrive"
+  outfile << "tims,theta_in,theta_morimoto,theta_test,vel_in,vel_morimoto,vel_"
+             "test,temp0,temp1"
           << std::endl;
 
   for (size_t i = 0; i < period; ++i) {
@@ -148,7 +152,8 @@ TEST(Observer, input_ramp) {
     Observer2.process(theta_meas.at(i));
     outfile << static_cast<float>(i) / fs_hz << ", " << theta_meas.at(i) << ", "
             << Observer1.getPos() << ", " << Observer2.getPos() << ", " << vel
-            << ", " << Observer1.getVel() << ", " << Observer2.getVel()
+            << ", " << Observer1.getVel() << ", " << Observer2.getVel() << ", "
+            << Observer2.getTemp0() << ", " << Observer2.getTemp1()
             << std::endl;
   }
   // ファイルを閉じる

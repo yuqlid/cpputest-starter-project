@@ -110,7 +110,7 @@ TEST(SVM, test4) {
     float a = amp * std::cos(2 * pi * i / period);
     float b = amp * std::sin(2 * pi * i / period);
     float svm_u, svm_v, svm_w;
-    CHECK(svm::calcDuty(a, b, &svm_u, &svm_v, &svm_w));
+    CHECK(svm::calcDuty(a, b, svm_u, svm_v, svm_w));
     // auto [svm_u, svm_v, svm_w, res] = svm::calcDuty(a, b);
     auto [u, v, w] = calcDuty(a, b);
     outfile << i << ", " << a << ", " << b << ", " << svm_u << ", " << svm_v
