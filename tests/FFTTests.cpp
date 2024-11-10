@@ -35,7 +35,7 @@ std::array<double, array_size> input_re;
 std::array<double, array_size> input_im;
 
 TEST_GROUP(FFTTest){void setup(){for (uint32_t i = 0; i < array_size; i++){
-    input.at(i) = std::complex<double>(std::cos(two_pi * i / array_size), 0.0f);
+    input.at(i) = std::complex<double>(std::sin(two_pi * i / array_size), 0.0f);
 input_re.at(i) = input.at(i).real();
 input_im.at(i) = input.at(i).imag();
 }
@@ -49,7 +49,7 @@ TEST(FFTTest, fft1) {
   constexpr uint16_t period = array_size;
 
   //  書き込むファイル作成
-  std::ofstream outfile("fft.csv");
+  std::ofstream outfile("fft1.csv");
 
   // 入力兼出力用配列の作成
   std::array<double, period> re = input_re;
@@ -71,12 +71,32 @@ TEST(FFTTest, fft1) {
   outfile.close();  // ファイルを閉じる
 
   std::cout << "stored reslut.csv" << std::endl;
+
+  input_re = re;
+  input_im = im;
+
+  // FFTの実行
+  FFT(false, bit, re.data(), im.data());
+
+  //  書き込むファイル作成
+  std::ofstream outfile1("fft1_inv.csv");
+  if (!outfile1) {
+    FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
+  }
+
+  outfile1 << "i,In(Re),In(Im),Out(Re),Out(Im)" << std::endl;
+  for (int i = 0; i < period; ++i) {
+    outfile1 << i << ", " << input_re.at(i) << ", " << input_im.at(i) << ","
+             << re.at(i) << ", " << im.at(i) << std::endl;
+  }
+
+  outfile1.close();  // ファイルを閉じる
 }
 
 TEST(FFTTest, fft2) {
   constexpr uint16_t period = array_size;
   //  書き込むファイルを開く
-  std::ofstream outfile("fft_complex.csv");
+  std::ofstream outfile("fft2.csv");
 
   // 入力兼出力用配列の作成
   std::array<std::complex<double>, period> complexArray = input;
@@ -98,4 +118,20 @@ TEST(FFTTest, fft2) {
   outfile.close();  // ファイルを閉じる
 
   std::cout << "stored reslut.csv" << std::endl;
+
+  std::ofstream outfile1("fft2_inv.csv");
+  input = complexArray;
+  fft_dif(complexArray.data(), -period);
+  if (!outfile1) {
+    FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
+  }
+
+  outfile1 << "i, input, Re, Im" << std::endl;
+  for (int i = 0; i < period; ++i) {
+    outfile1 << i << ", " << input.at(i).real() << ","
+             << complexArray.at(i).real() << ", " << complexArray.at(i).imag()
+             << std::endl;
+  }
+
+  outfile1.close();  // ファイルを閉じる
 }
