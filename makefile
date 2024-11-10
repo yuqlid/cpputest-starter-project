@@ -27,7 +27,6 @@ endif
 #
 SRC_FILES += example-src/Example.c
 #SRC_FILES += ../App/controller/observer.cpp
-SRC_FILES += ../App/fft.cpp
 SRC_DIRS += example-platform
 
 # --- TEST_SRC_FILES and TEST_SRC_DIRS ---

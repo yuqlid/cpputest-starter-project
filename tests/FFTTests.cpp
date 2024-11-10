@@ -56,7 +56,7 @@ TEST(FFTTest, fft1) {
   std::array<double, period> im = input_im;
 
   // FFTの実行
-  FFT(true, bit, re.data(), im.data());
+  PaulBourke::fft(true, bit, re.data(), im.data());
 
   if (!outfile) {
     FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
@@ -76,7 +76,7 @@ TEST(FFTTest, fft1) {
   input_im = im;
 
   // FFTの実行
-  FFT(false, bit, re.data(), im.data());
+  PaulBourke::fft(false, bit, re.data(), im.data());
 
   //  書き込むファイル作成
   std::ofstream outfile1("fft1_inv.csv");
@@ -102,7 +102,7 @@ TEST(FFTTest, fft2) {
   std::array<std::complex<double>, period> complexArray = input;
 
   // FFTの実行
-  fft_dif(complexArray.data(), period);
+  mikami::fft(complexArray.data(), period);
 
   if (!outfile) {
     FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
@@ -121,7 +121,7 @@ TEST(FFTTest, fft2) {
 
   std::ofstream outfile1("fft2_inv.csv");
   input = complexArray;
-  fft_dif(complexArray.data(), -period);
+  mikami::fft(complexArray.data(), -period);
   if (!outfile1) {
     FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
   }
