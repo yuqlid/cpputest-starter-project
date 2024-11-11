@@ -167,11 +167,11 @@ TEST(FFTTest, dft2) {
   std::ofstream outfile("dft2.csv");
 
   // 入力兼出力用配列の作成
-  std::array<double, period> re = input_re;
-  std::array<double, period> im = input_im;
+  std::array<double, period> re{0.0};
+  std::array<double, period> im{0.0};
 
   // FFTの実行
-  PaulBourke::fft(true, bit, re.data(), im.data());
+  PaulBourke::dft(true, period, input_re.data(), input_im.data(), re.data(), im.data());
 
   if (!outfile) {
     FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
