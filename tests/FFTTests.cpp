@@ -135,3 +135,53 @@ TEST(FFTTest, fft2) {
 
   outfile1.close();  // ファイルを閉じる
 }
+
+TEST(FFTTest, dft1) {
+  constexpr uint16_t period = array_size;
+  //  書き込むファイルを開く
+  std::ofstream outfile("dft1.csv");
+
+  // 入力兼出力用配列の作成
+  std::array<std::complex<double>, period> complexArray;
+
+  // FFTの実行
+  mikami::dft(input.data(), complexArray.data(), period);
+
+  if (!outfile) {
+    FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
+  }
+
+  outfile << "i, input, Re, Im" << std::endl;
+  for (int i = 0; i < period; ++i) {
+    outfile << i << ", " << input.at(i).real() << ","
+            << complexArray.at(i).real() << ", " << complexArray.at(i).imag()
+            << std::endl;
+  }
+
+  outfile.close();  // ファイルを閉じる
+}
+
+TEST(FFTTest, dft2) {
+  constexpr uint16_t period = array_size;
+  //  書き込むファイルを開く
+  std::ofstream outfile("dft2.csv");
+
+  // 入力兼出力用配列の作成
+  std::array<double, period> re = input_re;
+  std::array<double, period> im = input_im;
+
+  // FFTの実行
+  PaulBourke::fft(true, bit, re.data(), im.data());
+
+  if (!outfile) {
+    FAIL("file open failed");  // ファイルが開けないとテスト失敗とする
+  }
+
+  outfile << "i,In(Re),In(Im),Out(Re),Out(Im)" << std::endl;
+  for (int i = 0; i < period; ++i) {
+    outfile << i << ", " << input_re.at(i) << ", " << input_im.at(i) << ","
+             << re.at(i) << ", " << im.at(i) << std::endl;
+  }
+
+  outfile.close();  // ファイルを閉じる
+}
