@@ -55,8 +55,8 @@ TEST(LPF, step_response) {
 TEST(LPF, transfer_function) {
   constexpr float pi = 3.14159265358979323846264338327950288;
 
-  constexpr float fs_hz = 100000.0f;  //!< サンプリング周波数　unit : Hz
-  constexpr float fc_hz = 1000.0f;    //!< カットオフ周波数　unit : Hz
+  constexpr float fs_hz = 20000.0f;  //!< サンプリング周波数　unit : Hz
+  constexpr float fc_hz = 2000.0f;    //!< カットオフ周波数　unit : Hz
   constexpr uint32_t omega_rads = fs_hz / 2 * 2 * pi;  //!< unit : rad/s
 
   constexpr std::complex<float> ts(1.0f / fs_hz, 0.0f);
