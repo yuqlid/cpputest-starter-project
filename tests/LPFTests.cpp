@@ -52,11 +52,45 @@ TEST(LPF, step_response) {
   std::cout << "stored lpf_test.csv" << std::endl;
 }
 
+TEST(LPF, step_response2) {
+  constexpr float fs_hz = 20000.0f;
+  constexpr float fc_hz = 1000.0f;
+  FirstOrderLpf<float> lpf1(fs_hz, fc_hz);
+  FirstOrderLpf<float> lpf2(2.0f * fc_hz / fs_hz);
+
+  std::ofstream outfile("lpf_test2.csv");
+  // ファイルが正しく開けたか確認する
+  if (!outfile) {
+    FAIL("file open failed");
+  }
+
+  // 入力波形の時系列データ作成
+  constexpr uint16_t period = 256;
+  std::array<uint16_t, period> x;
+  for (int i = 0; i < period; ++i) {
+    x.at(i) = 0.0f;
+    if (i > 100) {
+      x.at(i) = 1.0f;
+    }
+  }
+
+  outfile << "tims,in,out1,out2" << std::endl;
+
+  for (size_t i = 0; i < period; ++i) {
+    outfile << static_cast<float>(i) / fs_hz << ", " << x[i] << ", "
+            << lpf1.update(x[i]) << ", " << lpf2.update(x[i]) << std::endl;
+  }
+  // ファイルを閉じる
+  outfile.close();
+
+  std::cout << "stored lpf_test2.csv" << std::endl;
+}
+
 TEST(LPF, transfer_function) {
   constexpr float pi = 3.14159265358979323846264338327950288;
 
   constexpr float fs_hz = 20000.0f;  //!< サンプリング周波数　unit : Hz
-  constexpr float fc_hz = 2000.0f;    //!< カットオフ周波数　unit : Hz
+  constexpr float fc_hz = 2000.0f;   //!< カットオフ周波数　unit : Hz
   constexpr uint32_t omega_rads = fs_hz / 2 * 2 * pi;  //!< unit : rad/s
 
   constexpr std::complex<float> ts(1.0f / fs_hz, 0.0f);
