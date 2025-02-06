@@ -64,6 +64,7 @@ INCLUDE_DIRS += example-fff
 INCLUDE_DIRS += tests/exploding-fakes
 INCLUDE_DIRS += tests/fff
 INCLUDE_DIRS += ../App
+INCLUDE_DIRS += ../App/utils
 INCLUDE_DIRS += ../App/controller
 INCLUDE_DIRS += ../App/filter
 
