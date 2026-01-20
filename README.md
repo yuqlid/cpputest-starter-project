@@ -20,19 +20,20 @@ git clone https://github.com/jwgrenning/cpputest-starter-project unit-tests
 ```
 your-project-root
     |
-    |--- /cpputest (optionally in your repo)
+    |--- /cpputest (optionally in your repo if you are
+                   not using the docker dontainer)
     |--- /include
     |--- /src
     |--- /platform
     |--- makefile # for product build
-    |--- /legacy-build # scripts that help test existing code
-    |--- /unit-test # a.k.a the cpputest-starter-project
+    |--- /cpputest-starter-project # you'll want to rename this
            |
            |--- example-include
            |--- example-src
            |--- example-platform
+           |--- /legacy-build # scripts that help test existing code
            |--- tests
-           |--- makefile # for test-build
+           |--- makefile # makes and runs unit tests
 
 ```
 
@@ -82,11 +83,19 @@ Pull the `jwgrenning/cpputest-runner` docker image from docker hub.
 sudo docker pull jwgrenning/cpputest-runner
 ```
 
-#### Run the image in a container
+#### Build and run the starter project tests in docker
+
+Download or clone this repo into your project, open a command window and `cd` to the cpputest-starter-project directory.
+
+Define where the starter project is located
 
 ```
-cd your-project-root
-./unit-tests/docker/run.sh "make -C unit-test"
+export CPPUTEST_STARTER_PROJECT_HOME=<cpputest-starter-project directory>
+```
+
+```
+cd $CPPUTEST_STARTER_PROJECT_HOME
+./docker/run.sh "make"
 ```
 
 You'll see something like this
@@ -116,38 +125,24 @@ Errors (1 failures, 9 tests, 9 ran, 15 checks, 0 ignored, 0 filtered out, 1 ms)
 
 make: *** [/home/cpputest/build/MakefileWorker.mk:458: all] Error 1
 ```
+For a clean build
+
+```
+./docker/run.sh "make clean all"
+```
 
 You are ready to write your first test!
 
 #### What can the running docker container access?
 
-Executing `docker/run.sh` from `your-project-root/` means that the files and directories in `your-project-root/` are visible to the docker container. You will be able to reference your files from `tests/makefile`.  Any header and source file dependencies needed by the code under test should also be accessible from `your-project-root/`. 
+Executing `$CPPUTEST_STARTER_PROJECT_HOME/docker/run.sh` from `your-project-root/` means that the files and directories in `your-project-root/` are mounted in the docker container.Any header and source file dependencies needed by the code under test should also be accessible from `your-project-root/` (or you will have to customize 'docker/run.sh'. 
 
-#### Make clean
+#### Open a command line prompt in docker
 
-You can make clean.
-
-```
-./your-project-root/docker/run.sh "make -C unit-test clean"
-```
-
-#### Run legacy-build
-
-You can run the `legacy-build` script.  This script is helpful when you are dragging never tested code into the test environment. See [legacy-build](https://github.com/jwgrenning/legacy-build.git) for more information.
+cd to some directory and...
 
 ```
-./your-project-root/docker/run.sh "legacy-build make unit-test ."
-```
-
-This runs the `legacy-build` script, which
- * runs `make`
- * from the container's `unit-test` directory,
- * with the container's `.` directory as the directory to search for missing include dependencies.
-
-#### Open a shell prompt in the container
-
-```
-./your-project-root/docker/run.sh
+$CPPUTEST_STARTER_PROJECT_HOME/docker/run.sh
 ```
 
 You'll see something like this
@@ -160,15 +155,21 @@ Note that `/home` refers to `./your-project-root/`
 From the prompt, you can execute commands like this:
 
 ```
-make -C unit-test
+make -C <some visible dir with a makefile>
 ```
 
+#### Run legacy-build
+
+You can run the `$CPPUTEST_STARTER_PROJECT_HOME/legacy-build` script.  This script is helpful when you are dragging never tested code into the test environment. See [legacy-build](https://github.com/jwgrenning/legacy-build.git) for more information.
+
 ```
-legacy-build make unit-test .
+$CPPUTEST_STARTER_PROJECT_HOME/docker/run.sh "legacy-build make . ."
 ```
 
-Runs `make` from the `unit-test` directory, and uses the current directory (`.`) as the root of the tree to search for missing include files.
-
+This runs the `legacy-build` script, which
+ * runs `make`
+ * from the container's `.` directory,
+ * with the container's `.` directory as the directory to search for missing include dependencies.
 
 #### Mount Other Directories in the Container
 
