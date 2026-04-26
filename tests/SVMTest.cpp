@@ -3,8 +3,9 @@
 #include <iostream>
 
 #include "CppUTest/TestHarness.h"
-#include "invClarke .hpp"
+#include "invClarke.hpp"
 #include "svm.hpp"
+
 extern "C" {
 /*
  * Add your c-only include files here
@@ -21,13 +22,13 @@ TEST(SVM, test1) {
   float a = 0.0;
   float b = sqrt(3.0) / 2.0;
 
-  auto [u, v, w, res] = svm::calcDuty(a, b);
-
-  std::cout << u << std::endl;
-  std::cout << v << std::endl;
-  std::cout << w << std::endl;
-  std::cout << res << std::endl;
-
+  auto [u, v, w, res] = odrive_svm::calcDuty(a, b);
+  /*
+    std::cout << u << std::endl;
+    std::cout << v << std::endl;
+    std::cout << w << std::endl;
+    std::cout << res << std::endl;
+  */
   CHECK(res);
   CHECK(u <= 1);
   CHECK(v <= 1);
@@ -40,28 +41,89 @@ TEST(SVM, test1) {
 
 TEST(SVM, test2) {
   constexpr double pi = 3.14159265358979323846264338327950288;
-  constexpr float amp = sqrt(3) / 2;
+  constexpr float amp = std::sqrt(3) / 2;
+
+  uint16_t period = 2048;
   // 書き込むファイルを開く
-  std::ofstream outfile("result.csv");
+  std::ofstream outfile("odrive_svm_result.csv");
 
   // ファイルが正しく開けたか確認する
   if (!outfile) {
-    std::cerr << "file open failed" << std::endl;
-    // return 1; // エラーを示す
+    FAIL("file open failed");
   }
-  outfile << "theta, a, b, svm_u, svm_v, svm_w , u, v, w  " << std::endl;
+  outfile << "theta, a, b, svm_u, svm_v, svm_w , u, v, w, svm_uv, svm_vw, "
+             "svm_wu, uv, vw, wu"
+          << std::endl;
   // forループで計算し、結果をファイルに書き込む
-  for (int i = 0; i < 65536; ++i) {
-    float a = amp * cos(2 * pi * i / 65535);
-    float b = amp * sin(2 * pi * i / 65535);
-    auto [svm_u, svm_v, svm_w, res] = svm::calcDuty(a, b);
+  for (int i = 0; i < period; ++i) {
+    float a = amp * std::cos(2 * pi * i / period);
+    float b = amp * std::sin(2 * pi * i / period);
+    float svm_u, svm_v, svm_w;
+    CHECK(odrive_svm::calcDuty(a, b, &svm_u, &svm_v, &svm_w));
+    // auto [svm_u, svm_v, svm_w, res] = svm::calcDuty(a, b);
     auto [u, v, w] = calcDuty(a, b);
     outfile << i << ", " << a << ", " << b << ", " << svm_u << ", " << svm_v
-            << ", " << svm_w << ", " << u << ", " << v << ", " << w
-            << std::endl;
+            << ", " << svm_w << ", " << u << ", " << v << ", " << w << ", "
+            << svm_u - svm_v << ", " << svm_v - svm_w << ", " << svm_w - svm_u
+            << ", " << u - v << ", " << v - w << ", " << w - u << std::endl;
   }
   // ファイルを閉じる
   outfile.close();
 
-  std::cout << "stored reslut.csv" << std::endl;
+  std::cout << "stored odrive_svm_result.csv" << std::endl;
+}
+
+TEST(SVM, test3) {
+  float a = 0.0f;
+  float b = 0.0f;
+
+  auto [u, v, w, res] = odrive_svm::calcDuty(a, b);
+
+  std::cout << u << std::endl;
+  std::cout << v << std::endl;
+  std::cout << w << std::endl;
+  std::cout << res << std::endl;
+
+  /*
+   * Instantiate your class, or call the function, you want to test.
+   * Then delete this comment
+   */
+}
+
+TEST(SVM, test4) {
+  constexpr double pi = 3.14159265358979323846264338327950288;
+  constexpr float sqrt3_by_two = std::sqrt(3.0f) / 2.0f;
+  constexpr float two_by_three = 2.0f / 3.0f;
+  constexpr float factor = sqrt3_by_two * two_by_three;
+  uint16_t period = 2048;
+  // 書き込むファイルを開く
+  std::ofstream outfile("svm_result.csv");
+
+  // ファイルが正しく開けたか確認する
+  if (!outfile) {
+    FAIL("file open failed");
+  }
+  outfile << "theta, a, b,a(svm), b(svm), svm_u, svm_v, svm_w , u, v, w, "
+             "svm_uv, svm_vw, "
+             "svm_wu, uv, vw, wu"
+          << std::endl;
+  // forループで計算し、結果をファイルに書き込む
+  for (int i = 0; i < period; ++i) {
+    float a = sqrt3_by_two * factor * std::cos(2 * pi * i / period);
+    float b = sqrt3_by_two * factor * std::sin(2 * pi * i / period);
+
+    float u, v, w;
+    CHECK(invclarke::calcDuty(a, b, u, v, w));
+    float svm_u, svm_v, svm_w;
+    CHECK(svm::calcDuty(a / factor, b / factor, svm_u, svm_v, svm_w));
+    outfile << i << ", " << a << ", " << b << ", " << a / factor << ", "
+            << b / factor << ", " << svm_u << ", " << svm_v << ", " << svm_w
+            << ", " << u << ", " << v << ", " << w << ", " << svm_u - svm_v
+            << ", " << svm_v - svm_w << ", " << svm_w - svm_u << ", " << u - v
+            << ", " << v - w << ", " << w - u << std::endl;
+  }
+  // ファイルを閉じる
+  outfile.close();
+
+  std::cout << "stored svm_result.csv" << std::endl;
 }

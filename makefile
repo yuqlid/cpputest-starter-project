@@ -26,6 +26,7 @@ endif
 # production code C and CPP files.
 #
 SRC_FILES += example-src/Example.c
+#SRC_FILES += ../App/controller/observer.cpp
 SRC_DIRS += example-platform
 
 # --- TEST_SRC_FILES and TEST_SRC_DIRS ---
@@ -63,6 +64,9 @@ INCLUDE_DIRS += example-fff
 INCLUDE_DIRS += tests/exploding-fakes
 INCLUDE_DIRS += tests/fff
 INCLUDE_DIRS += ../App
+INCLUDE_DIRS += ../App/utils
+INCLUDE_DIRS += ../App/controller
+INCLUDE_DIRS += ../App/filter
 
 
 # --- CPPUTEST_OBJS_DIR ---
