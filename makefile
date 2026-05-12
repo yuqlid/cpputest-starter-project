@@ -63,10 +63,9 @@ INCLUDE_DIRS += example-include
 INCLUDE_DIRS += example-fff
 INCLUDE_DIRS += tests/exploding-fakes
 INCLUDE_DIRS += tests/fff
+INCLUDE_DIRS += tests/app-fakes
 INCLUDE_DIRS += ../App
 INCLUDE_DIRS += ../App/utils
-INCLUDE_DIRS += ../App/controller
-INCLUDE_DIRS += ../App/filter
 
 
 # --- CPPUTEST_OBJS_DIR ---
