@@ -10,13 +10,14 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr const char* kRootDir = "Logs";
-
+constexpr const char* kLatestDir = "latest";
 /**
  * @brief 実行時タイムスタンプ保存
  *
  * CppUTestリーク検出対策として
  * std::string static を避ける
  */
+
 char g_run_timestamp[32] = {0};
 
 void makeTimestamp(char* buffer, size_t size) {
@@ -25,7 +26,7 @@ void makeTimestamp(char* buffer, size_t size) {
 
   std::tm tm{};
 
-#ifdef _WIN32
+#if defined(_MSC_VER)
   localtime_s(&tm, &t);
 #else
   localtime_r(&t, &tm);
@@ -42,10 +43,14 @@ namespace TestOutputPath {
 void initialize() {
   makeTimestamp(g_run_timestamp, sizeof(g_run_timestamp));
 
+  fs::remove_all(fs::path(kRootDir) / kLatestDir);
+
   fs::create_directories(fs::path(kRootDir) / g_run_timestamp);
+  fs::create_directories(fs::path(kRootDir) / kLatestDir);
 }
 
-fs::path makeCsvPath(const std::string& group, const std::string& file_name) {
+std::filesystem::path makeCsvPath(const std::string& group,
+                                  const std::string& file_name) {
   fs::path dir = fs::path(kRootDir) / g_run_timestamp / group;
 
   fs::create_directories(dir);
@@ -53,4 +58,15 @@ fs::path makeCsvPath(const std::string& group, const std::string& file_name) {
   return dir / file_name;
 }
 
+void copyToLatest(const std::string& group, const std::string& file_name) {
+  fs::path src = fs::path(kRootDir) / g_run_timestamp / group / file_name;
+
+  fs::path dst_dir = fs::path(kRootDir) / kLatestDir / group;
+
+  fs::create_directories(dst_dir);
+
+  fs::path dst = dst_dir / file_name;
+
+  fs::copy_file(src, dst, fs::copy_options::overwrite_existing);
+}
 }  // namespace TestOutputPath

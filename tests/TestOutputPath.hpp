@@ -19,8 +19,9 @@ void initialize();
  * 例:
  * test_output/2026-05-19_120301/LPF/step.csv
  */
-std::filesystem::path makeCsvPath(
-    const std::string& group,
-    const std::string& file_name);
+std::filesystem::path makeCsvPath(const std::string& group,
+                                  const std::string& file_name);
+
+void copyToLatest(const std::string& group, const std::string& file_name);
 
 }  // namespace TestOutputPath
