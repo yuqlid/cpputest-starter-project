@@ -1,50 +1,84 @@
-#include <array>
 #include <cmath>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <type_traits>
-#include <vector>
 
 #include "CppUTest/TestHarness.h"
 #include "trajectory.hpp"
 
-extern "C" {
-/*
- * Add your c-only include files here
- */
+TEST_GROUP(Trajectory){};
+
+namespace {
+constexpr double kTolerance = 1.0e-5;
+
+template <typename T>
+void advanceToEnd(TrapezoidalTrajectory<T> &trajectory) {
+  int guard = 0;
+  while (!trajectory.isFinished() && guard < 10000) {
+    trajectory.nextStep();
+    ++guard;
+  }
+  CHECK(guard < 10000);
+}
+}  // namespace
+
+TEST(Trajectory, TrapezoidalMoveReachesEndPosition) {
+  TrapezoidalTrajectory<double> trajectory(0.0, 10.0, 2.0, 1.0, 0.1);
+
+  DOUBLES_EQUAL(7.0, trajectory.getTotalTime(), kTolerance);
+
+  advanceToEnd(trajectory);
+  const auto state = trajectory.nextStep();
+
+  CHECK(trajectory.isFinished());
+  DOUBLES_EQUAL(10.0, state.pos, kTolerance);
+  DOUBLES_EQUAL(0.0, state.vel, kTolerance);
+  DOUBLES_EQUAL(0.0, state.accel, kTolerance);
 }
 
-#define _USE_MATH_DEFINES  // for C++
+TEST(Trajectory, TriangularMoveUsesReachablePeakVelocity) {
+  TrapezoidalTrajectory<double> trajectory(0.0, 1.0, 10.0, 2.0, 0.1);
 
-TEST_GROUP(Trajectory){void setup(){}
+  DOUBLES_EQUAL(std::sqrt(2.0), trajectory.getTotalTime(), kTolerance);
 
-                       void teardown(){}};
+  advanceToEnd(trajectory);
+  const auto state = trajectory.nextStep();
 
-constexpr float startPos = 0.0f * 3.14 / 3.0f;
-constexpr float endPos = 2.0f * 3.14 / 3.0f;
-constexpr float maxVel = 10.0f;
-constexpr float maxAccel = 200.0f;
-constexpr float timeStep = 1.0f / 20000.0f;
+  DOUBLES_EQUAL(1.0, state.pos, kTolerance);
+  DOUBLES_EQUAL(0.0, state.vel, kTolerance);
+}
 
-TEST(Trajectory, test1) {
-  TrapezoidalTrajectory<float> traj(startPos, endPos, maxVel, maxAccel,
-                                    timeStep);
+TEST(Trajectory, ReverseMoveKeepsVelocitySignNegative) {
+  TrapezoidalTrajectory<double> trajectory(5.0, 1.0, 2.0, 4.0, 0.1);
 
-  std::ofstream outfile("trajectory.csv");
-  // ファイルが正しく開けたか確認する
-  if (!outfile) {
-    FAIL("file open failed");
-  }
+  const auto first = trajectory.nextStep();
+  const auto second = trajectory.nextStep();
 
-  outfile << "time, pos,vel" << std::endl;
-  while (!traj.isFinished()) {
-    float pos = traj.nextStep();
-    outfile << traj.getCurrentTime() << "," << pos << ","
-            << traj.getCurrentVel() << std::endl;
-  }
-  // ファイルを閉じる
-  outfile.close();
+  DOUBLES_EQUAL(5.0, first.pos, kTolerance);
+  CHECK(second.vel < decltype(second.vel)(0));
 
-  std::cout << "stored trajectory.csv" << std::endl;
+  advanceToEnd(trajectory);
+  const auto state = trajectory.nextStep();
+
+  DOUBLES_EQUAL(1.0, state.pos, kTolerance);
+  DOUBLES_EQUAL(0.0, state.vel, kTolerance);
+}
+
+TEST(Trajectory, InvalidLimitsMakeStationaryTrajectory) {
+  TrapezoidalTrajectory<double> trajectory(2.0, 4.0, 0.0, 1.0, 0.1);
+
+  CHECK(trajectory.isFinished());
+  DOUBLES_EQUAL(0.0, trajectory.getTotalTime(), kTolerance);
+  DOUBLES_EQUAL(1.0, trajectory.getProgress(), kTolerance);
+
+  const auto state = trajectory.nextStep();
+  DOUBLES_EQUAL(2.0, state.pos, kTolerance);
+  DOUBLES_EQUAL(0.0, state.vel, kTolerance);
+}
+
+TEST(Trajectory, TimeAdvancesByOneStepPerSample) {
+  TrapezoidalTrajectory<double> trajectory(0.0, 10.0, 2.0, 1.0, 0.1);
+
+  trajectory.nextStep();
+  DOUBLES_EQUAL(0.1, trajectory.getCurrentTime(), kTolerance);
+
+  trajectory.nextStep();
+  DOUBLES_EQUAL(0.2, trajectory.getCurrentTime(), kTolerance);
 }
