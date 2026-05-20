@@ -44,7 +44,9 @@ void writeSinCosCsv(const std::string &file_name) {
                         static_cast<float>(period);
     const float expected_sin = std::sin(theta);
     const float expected_cos = std::cos(theta);
-    const auto [approx_sin, approx_cos] = nick_sincos::sincos(theta);
+    float approx_sin = 0.0f;
+    float approx_cos = 0.0f;
+    nick_sincos::sincos(theta, approx_sin, approx_cos);
 
     csv << theta << "," << expected_sin << "," << approx_sin << ","
         << approx_sin - expected_sin << "," << expected_cos << ","
@@ -59,10 +61,27 @@ TEST(SinCos, ApproximationStaysCloseToStdSinCos) {
   for (int i = 0; i <= period; ++i) {
     const float theta = 2.0f * kPi * static_cast<float>(i) /
                         static_cast<float>(period);
-    const auto [approx_sin, approx_cos] = nick_sincos::sincos(theta);
+    float approx_sin = 0.0f;
+    float approx_cos = 0.0f;
+    nick_sincos::sincos(theta, approx_sin, approx_cos);
 
     DOUBLES_EQUAL(std::sin(theta), approx_sin, kTolerance);
     DOUBLES_EQUAL(std::cos(theta), approx_cos, kTolerance);
+  }
+}
+
+TEST(SinCos, SincosMatchesSeparateSinCos) {
+  constexpr int period = 64;
+
+  for (int i = 0; i <= period; ++i) {
+    const float theta = 2.0f * kPi * static_cast<float>(i) /
+                        static_cast<float>(period);
+    float approx_sin = 0.0f;
+    float approx_cos = 0.0f;
+    nick_sincos::sincos(theta, approx_sin, approx_cos);
+
+    DOUBLES_EQUAL(nick_sincos::sin(theta), approx_sin, 0.0);
+    DOUBLES_EQUAL(nick_sincos::cos(theta), approx_cos, 0.0);
   }
 }
 
