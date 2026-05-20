@@ -1,5 +1,5 @@
 /**
- * @file trigonometric_funcTest.cpp
+ * @file SinCosTest.cpp
  * @author KUSAKABE Yuki (yuqlid@dgmail.com)
  * @brief
  * @version 0.1
@@ -10,49 +10,63 @@
  */
 #include <cmath>
 #include <fstream>
-#include <iostream>
+#include <string>
 
 #include "CppUTest/TestHarness.h"
-#include "trigonometric_func.hpp"
-extern "C" {
-/*
- * Add your c-only include files here
- */
+#include "TestOutputPath.hpp"
+#include "sincos_approx.hpp"
+
+TEST_GROUP(SinCos) {
+  const char *csv_file_name = nullptr;
+
+  void teardown() {
+    if (csv_file_name != nullptr) {
+      TestOutputPath::copyToLatest("SinCos", csv_file_name);
+    }
+  }
+};
+
+namespace {
+constexpr float kPi = 3.14159265358979323846264338327950288f;
+constexpr float kTolerance = 0.002f;
+
+void writeSinCosCsv(const std::string &file_name) {
+  constexpr int period = 2048;
+  const auto path = TestOutputPath::makeCsvPath("SinCos", file_name);
+  std::ofstream csv(path);
+
+  CHECK_TEXT(csv.is_open(), "sincos csv open failed");
+
+  csv << "theta,std_sin,approx_sin,sin_error,std_cos,approx_cos,cos_error\n";
+
+  for (int i = 0; i <= period; ++i) {
+    const float theta = 2.0f * kPi * static_cast<float>(i) /
+                        static_cast<float>(period);
+    const float expected_sin = std::sin(theta);
+    const float expected_cos = std::cos(theta);
+    const auto [approx_sin, approx_cos] = nick_sincos::sincos(theta);
+
+    csv << theta << "," << expected_sin << "," << approx_sin << ","
+        << approx_sin - expected_sin << "," << expected_cos << ","
+        << approx_cos << "," << approx_cos - expected_cos << "\n";
+  }
+}
+}  // namespace
+
+TEST(SinCos, ApproximationStaysCloseToStdSinCos) {
+  constexpr int period = 2048;
+
+  for (int i = 0; i <= period; ++i) {
+    const float theta = 2.0f * kPi * static_cast<float>(i) /
+                        static_cast<float>(period);
+    const auto [approx_sin, approx_cos] = nick_sincos::sincos(theta);
+
+    DOUBLES_EQUAL(std::sin(theta), approx_sin, kTolerance);
+    DOUBLES_EQUAL(std::cos(theta), approx_cos, kTolerance);
+  }
 }
 
-// #define _USE_MATH_DEFINES  // for C++
-constexpr float pi = 3.14159265358979323846264338327950288;
-
-TEST_GROUP(SinCos){void setup(){}
-
-                   void teardown(){}};
-
-TEST(SinCos, test1) {
-  auto [sin, cos] = nick_sincos::sincos(static_cast<float>(pi / 2));
-  std::cout << sin << std::endl;
-  CHECK(sin <= 1);
-}
-
-TEST(SinCos, test2) {
-  uint16_t period = 2048;
-  // 書き込むファイルを開く
-  std::ofstream outfile("sincos_result.csv");
-
-  // ファイルが正しく開けたか確認する
-  if (!outfile) {
-    FAIL("file open failed");
-  }
-  outfile << "theta, sin(theta), cos(theta)" << std::endl;
-  // forループで計算し、結果をファイルに書き込む
-  for (int i = 0; i < period; ++i) {
-    float theta = 2 * pi * i / period;
-    //float sin_theta = nick_sincos::sin(theta);
-    //float cos_theta = nick_sincos::cos(theta);
-    auto[sin_theta, cos_theta] = nick_sincos::sincos(theta);
-    outfile << theta << ", " << sin_theta << ", " << cos_theta << std::endl;
-  }
-  // ファイルを閉じる
-  outfile.close();
-
-  std::cout << "stored reslut.csv" << std::endl;
+TEST(SinCos, GenerateCsvForVisualInspection) {
+  csv_file_name = "sincos_result.csv";
+  writeSinCosCsv(csv_file_name);
 }
