@@ -2,6 +2,16 @@
 SILENCE = @
 
 CPPUTEST_HOME = ../cpputest
+
+# MakefileWorker.mk はデフォルトで $(CPPUTEST_HOME)/lib から
+# libCppUTest.a / libCppUTestExt.a をリンクしようとする。
+# CppUTest をアウトオブツリービルドした場合、ライブラリは
+# $(CPPUTEST_HOME)/cpputest_build/lib に生成されるため、リンク先だけ上書きする。
+# 今回は cpputest_build を出力先にしているが、必要に応じて変更する。
+# MakefileWorker.mk 内でも CPPUTEST_LIB_LINK_DIR が代入されるため override を使う。
+CPPUTEST_BUILD_DIR ?= $(CPPUTEST_HOME)/cpputest_build
+override CPPUTEST_LIB_LINK_DIR = $(CPPUTEST_BUILD_DIR)/lib
+
 #---- Outputs ----#
 COMPONENT_NAME = your
 
@@ -38,8 +48,17 @@ SRC_DIRS += example-platform
 # TEST_SRC_FILES specifies individual test files to build.
 # TEST_SRC_DIRS, builds everything in the directory
 
-TEST_SRC_FILES +=
-TEST_SRC_DIRS += tests
+TEST_SRC_FILES += tests/AllTests.cpp
+TEST_SRC_FILES += tests/AppCoreTest.cpp
+TEST_SRC_FILES += tests/Atan2ApproxTest.cpp
+TEST_SRC_FILES += tests/ClarkeTransformTest.cpp
+TEST_SRC_FILES += tests/ExampleTest.cpp
+TEST_SRC_FILES += tests/FirstOrderLpfTest.cpp
+TEST_SRC_FILES += tests/MyFirstTest.cpp
+TEST_SRC_FILES += tests/ParkTransformTest.cpp
+TEST_SRC_FILES += tests/SinCosTest.cpp
+TEST_SRC_FILES += tests/TestOutputPath.cpp
+TEST_SRC_FILES += tests/TrajectoryTest.cpp
 TEST_SRC_DIRS += tests/io-cppumock
 TEST_SRC_DIRS += tests/printf-spy
 #
