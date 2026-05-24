@@ -55,6 +55,7 @@ TEST_SRC_FILES += tests/ClarkeTransformTest.cpp
 TEST_SRC_FILES += tests/ExampleTest.cpp
 TEST_SRC_FILES += tests/FirstOrderLpfTest.cpp
 TEST_SRC_FILES += tests/MyFirstTest.cpp
+TEST_SRC_FILES += tests/ObserverTest.cpp
 TEST_SRC_FILES += tests/ParkTransformTest.cpp
 TEST_SRC_FILES += tests/SinCosTest.cpp
 TEST_SRC_FILES += tests/TestOutputPath.cpp
