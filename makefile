@@ -36,6 +36,7 @@ endif
 # production code C and CPP files.
 #
 SRC_FILES += example-src/Example.c
+SRC_FILES += ../App/cia402/ds402_state_machine.cpp
 #SRC_FILES += ../App/controller/observer.cpp
 SRC_DIRS += example-platform
 
@@ -52,6 +53,7 @@ TEST_SRC_FILES += tests/AllTests.cpp
 TEST_SRC_FILES += tests/AppCoreTest.cpp
 TEST_SRC_FILES += tests/Atan2ApproxTest.cpp
 TEST_SRC_FILES += tests/ClarkeTransformTest.cpp
+TEST_SRC_FILES += tests/DS402StateMachineTest.cpp
 TEST_SRC_FILES += tests/ExampleTest.cpp
 TEST_SRC_FILES += tests/FirstOrderLpfTest.cpp
 TEST_SRC_FILES += tests/MyFirstTest.cpp
@@ -85,6 +87,7 @@ INCLUDE_DIRS += tests/exploding-fakes
 INCLUDE_DIRS += tests/fff
 INCLUDE_DIRS += tests/app-fakes
 INCLUDE_DIRS += ../App
+INCLUDE_DIRS += ../App/cia402
 INCLUDE_DIRS += ../App/utils
 
 
