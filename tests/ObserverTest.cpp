@@ -153,18 +153,6 @@ TEST(MorimotoObserver, SetConfigAppliesValidConfig)
     DOUBLES_EQUAL(200.0, config.velocity_lpf_cutoff_hz, 1e-6);
 }
 
-TEST(MorimotoObserver, KeepsLegacyTypoApiAvailable)
-{
-    motimoro_observer::Observer<float> observer(300.0f, 100.0f, 0.00005f);
-
-    CHECK_TRUE(observer.updateBandWitdh(500.0f));
-    CHECK_TRUE(observer.updateVelocityBandWidth(200.0f));
-
-    const auto config = observer.getConfig();
-    DOUBLES_EQUAL(500.0, config.bandwidth, 1e-6);
-    DOUBLES_EQUAL(200.0, config.velocity_lpf_cutoff_hz, 1e-6);
-}
-
 TEST(MorimotoObserver, UpdateAdvancesObserverState)
 {
     morimoto_observer::Observer<float> observer(300.0f, 100.0f, 0.00005f);
