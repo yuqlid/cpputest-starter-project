@@ -107,6 +107,48 @@ TEST_GROUP(DS402StateMachine) {
   ds402::StateMachine machine{drive};
 };
 
+TEST_GROUP(DS402ModeOfOperation) {
+};
+
+TEST(DS402ModeOfOperation, FactoriesExposeCiA402AndVendorSpecificValues) {
+  LONGS_EQUAL(-11, static_cast<int8_t>(
+                       ds402::ModeOfOperation::CalibrateSinCosEncoder()));
+  LONGS_EQUAL(-9, static_cast<int8_t>(
+                      ds402::ModeOfOperation::CalibrateAbsEncoder()));
+  LONGS_EQUAL(-7, static_cast<int8_t>(
+                      ds402::ModeOfOperation::CalibrateIncrementalEncoder()));
+  LONGS_EQUAL(-5, static_cast<int8_t>(ds402::ModeOfOperation::MeasureFlux()));
+  LONGS_EQUAL(-3,
+              static_cast<int8_t>(ds402::ModeOfOperation::MeasureInductance()));
+  LONGS_EQUAL(-1,
+              static_cast<int8_t>(ds402::ModeOfOperation::MeasureResistance()));
+  LONGS_EQUAL(0, static_cast<int8_t>(ds402::ModeOfOperation::None()));
+  LONGS_EQUAL(1,
+              static_cast<int8_t>(ds402::ModeOfOperation::ProfilePosition()));
+  LONGS_EQUAL(3,
+              static_cast<int8_t>(ds402::ModeOfOperation::ProfileVelocity()));
+  LONGS_EQUAL(4,
+              static_cast<int8_t>(ds402::ModeOfOperation::ProfileTorque()));
+  LONGS_EQUAL(6, static_cast<int8_t>(ds402::ModeOfOperation::Homing()));
+  LONGS_EQUAL(8, static_cast<int8_t>(
+                     ds402::ModeOfOperation::CyclicSynchronousPosition()));
+  LONGS_EQUAL(9, static_cast<int8_t>(
+                     ds402::ModeOfOperation::CyclicSynchronousVelocity()));
+  LONGS_EQUAL(10, static_cast<int8_t>(
+                      ds402::ModeOfOperation::CyclicSynchronousTorque()));
+}
+
+TEST(DS402ModeOfOperation, FromRawValueMapsKnownValuesAndRejectsUnknownValues) {
+  CHECK_TRUE(ds402::ModeOfOperation::FromRawValue(8) ==
+             ds402::ModeOfOperation::CyclicSynchronousPosition());
+  CHECK_TRUE(ds402::ModeOfOperation::FromRawValue(10) ==
+             ds402::ModeOfOperation::CyclicSynchronousTorque());
+  CHECK_TRUE(ds402::ModeOfOperation::FromRawValue(-11) ==
+             ds402::ModeOfOperation::CalibrateSinCosEncoder());
+  CHECK_TRUE(ds402::ModeOfOperation::FromRawValue(2) ==
+             ds402::ModeOfOperation::Unknown());
+}
+
 TEST(DS402StateMachine, InitialUpdateInitializesDriveAndMovesToSwitchOnDisabled) {
   CHECK_TRUE(machine.getState() == ds402::State::NotReadyToSwitchOn());
 
