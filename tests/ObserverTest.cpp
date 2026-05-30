@@ -60,6 +60,27 @@ void writeObserverResponseCsv(const char* file_name, const std::array<float, 102
 
 }  // namespace
 
+TEST(MotimoroObserver, ValidatesConfigValues)
+{
+    CHECK_TRUE(ObserverConfig_t<float>::isBandwidthValid(300.0f));
+    CHECK_TRUE(ObserverConfig_t<float>::isDampingRatioValid(1.0f));
+    CHECK_TRUE(
+        ObserverConfig_t<float>::isVelocityBandwidthValid(20000.0f, 100.0f));
+    CHECK_TRUE(ObserverConfig_t<float>::isConfigValid(
+        {.bandwitdh = 300.0f, .damping_ratio = 1.0f, .bandwitdh_vel = 100.0f},
+        20000.0f));
+
+    CHECK_FALSE(ObserverConfig_t<float>::isBandwidthValid(INFINITY));
+    CHECK_FALSE(ObserverConfig_t<float>::isBandwidthValid(0.0f));
+    CHECK_FALSE(ObserverConfig_t<float>::isDampingRatioValid(NAN));
+    CHECK_FALSE(ObserverConfig_t<float>::isDampingRatioValid(0.0f));
+    CHECK_FALSE(
+        ObserverConfig_t<float>::isVelocityBandwidthValid(20000.0f, 10001.0f));
+    CHECK_FALSE(ObserverConfig_t<float>::isConfigValid(
+        {.bandwitdh = 300.0f, .damping_ratio = 1.0f, .bandwitdh_vel = 10001.0f},
+        20000.0f));
+}
+
 TEST(MotimoroObserver, RejectsInvalidObserverBandwidth)
 {
     motimoro_observer::Observer<float> observer(300.0f, 100.0f, 0.00005f);
