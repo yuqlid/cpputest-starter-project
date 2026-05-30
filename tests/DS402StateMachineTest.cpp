@@ -86,7 +86,7 @@ TEST_GROUP(DS402StateMachine) {
 TEST(DS402StateMachine, InitialUpdateInitializesDriveAndMovesToSwitchOnDisabled) {
   CHECK_TRUE(machine.getState() == DS402State::NotReadyToSwitchOn());
 
-  const DS402State state = machine.updateState();
+  const DS402State state = machine.update();
 
   CHECK_TRUE(state == DS402State::SwitchOnDisabled());
   LONGS_EQUAL(1, drive.initialize_count);
@@ -95,17 +95,17 @@ TEST(DS402StateMachine, InitialUpdateInitializesDriveAndMovesToSwitchOnDisabled)
 }
 
 TEST(DS402StateMachine, NormalControlwordSequenceReachesOperationEnabled) {
-  machine.updateState();
+  machine.update();
 
   machine.setControlWord(kShutdownControlWord);
-  CHECK_TRUE(machine.updateState() == DS402State::ReadyToSwitchOn());
+  CHECK_TRUE(machine.update() == DS402State::ReadyToSwitchOn());
 
   machine.setControlWord(kSwitchOnControlWord);
-  CHECK_TRUE(machine.updateState() == DS402State::SwitchedOn());
+  CHECK_TRUE(machine.update() == DS402State::SwitchedOn());
   LONGS_EQUAL(1, drive.enable_power_count);
 
   machine.setControlWord(kEnableOperationControlWord);
-  CHECK_TRUE(machine.updateState() == DS402State::OperationEnabled());
+  CHECK_TRUE(machine.update() == DS402State::OperationEnabled());
   LONGS_EQUAL(1, drive.enable_drive_count);
 
   const uint16_t expected_status_word =
@@ -115,63 +115,63 @@ TEST(DS402StateMachine, NormalControlwordSequenceReachesOperationEnabled) {
 }
 
 TEST(DS402StateMachine, OngoingDriveTransitionHoldsCurrentState) {
-  machine.updateState();
+  machine.update();
   machine.setControlWord(kShutdownControlWord);
-  machine.updateState();
+  machine.update();
 
   drive.enable_power_status = DS402TransitionStatus::kOngoing;
   machine.setControlWord(kSwitchOnControlWord);
 
-  CHECK_TRUE(machine.updateState() == DS402State::ReadyToSwitchOn());
+  CHECK_TRUE(machine.update() == DS402State::ReadyToSwitchOn());
   LONGS_EQUAL(1, drive.enable_power_count);
 }
 
 TEST(DS402StateMachine, DriveFaultMovesThroughFaultReactionToFault) {
-  machine.updateState();
+  machine.update();
   machine.setControlWord(kShutdownControlWord);
-  machine.updateState();
+  machine.update();
 
   drive.enable_power_status = DS402TransitionStatus::kFault;
   machine.setControlWord(kSwitchOnControlWord);
 
-  CHECK_TRUE(machine.updateState() == DS402State::FaultReactionActive());
+  CHECK_TRUE(machine.update() == DS402State::FaultReactionActive());
 
   drive.enable_power_status = DS402TransitionStatus::kFinished;
-  CHECK_TRUE(machine.updateState() == DS402State::Fault());
+  CHECK_TRUE(machine.update() == DS402State::Fault());
   LONGS_EQUAL(1, drive.handle_fault_count);
 }
 
 TEST(DS402StateMachine, FaultResetRequiresRisingEdgeOfControlwordBit7) {
-  machine.updateState();
-  machine.Fault();
-  CHECK_TRUE(machine.updateState() == DS402State::Fault());
+  machine.update();
+  machine.requestFault();
+  CHECK_TRUE(machine.update() == DS402State::Fault());
 
   machine.setControlWord(kFaultResetControlWord);
-  CHECK_TRUE(machine.updateState() == DS402State::SwitchOnDisabled());
+  CHECK_TRUE(machine.update() == DS402State::SwitchOnDisabled());
 
-  machine.Fault();
-  CHECK_TRUE(machine.updateState() == DS402State::Fault());
+  machine.requestFault();
+  CHECK_TRUE(machine.update() == DS402State::Fault());
 
   machine.setControlWord(kFaultResetControlWord);
-  CHECK_TRUE(machine.updateState() == DS402State::Fault());
+  CHECK_TRUE(machine.update() == DS402State::Fault());
 
   machine.setControlWord(kDisableVoltageControlWord);
-  machine.updateState();
+  machine.update();
   machine.setControlWord(kFaultResetControlWord);
-  CHECK_TRUE(machine.updateState() == DS402State::SwitchOnDisabled());
+  CHECK_TRUE(machine.update() == DS402State::SwitchOnDisabled());
 }
 
 TEST(DS402StateMachine, QuickStopFromOperationEnabledActivatesQuickStop) {
-  machine.updateState();
+  machine.update();
   machine.setControlWord(kShutdownControlWord);
-  machine.updateState();
+  machine.update();
   machine.setControlWord(kSwitchOnControlWord);
-  machine.updateState();
+  machine.update();
   machine.setControlWord(kEnableOperationControlWord);
-  machine.updateState();
+  machine.update();
 
   machine.setControlWord(kQuickStopControlWord);
 
-  CHECK_TRUE(machine.updateState() == DS402State::QuickStopActive());
+  CHECK_TRUE(machine.update() == DS402State::QuickStopActive());
   LONGS_EQUAL(1, drive.quick_stop_count);
 }
