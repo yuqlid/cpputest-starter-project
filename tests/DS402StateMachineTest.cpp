@@ -76,6 +76,30 @@ class FakeDS402Drive final : public ds402::DriveInterface {
   }
 };
 
+void moveToReadyToSwitchOn(ds402::StateMachine& machine) {
+  machine.update();
+  machine.setControlWord(kShutdownControlWord);
+  machine.update();
+}
+
+void moveToSwitchedOn(ds402::StateMachine& machine) {
+  moveToReadyToSwitchOn(machine);
+  machine.setControlWord(kSwitchOnControlWord);
+  machine.update();
+}
+
+void moveToOperationEnabled(ds402::StateMachine& machine) {
+  moveToSwitchedOn(machine);
+  machine.setControlWord(kEnableOperationControlWord);
+  machine.update();
+}
+
+void moveToQuickStopActive(ds402::StateMachine& machine) {
+  moveToOperationEnabled(machine);
+  machine.setControlWord(kQuickStopControlWord);
+  machine.update();
+}
+
 }  // namespace
 
 TEST_GROUP(DS402StateMachine) {
@@ -126,6 +150,22 @@ TEST(DS402StateMachine, OngoingDriveTransitionHoldsCurrentState) {
   LONGS_EQUAL(1, drive.enable_power_count);
 }
 
+TEST(DS402StateMachine, OngoingEnableDriveHoldsSwitchedOn) {
+  moveToSwitchedOn(machine);
+
+  drive.enable_drive_status = ds402::TransitionStatus::kOngoing;
+  machine.setControlWord(kEnableOperationControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::SwitchedOn());
+  LONGS_EQUAL(1, drive.enable_drive_count);
+
+  drive.enable_drive_status = ds402::TransitionStatus::kFinished;
+  machine.setControlWord(kEnableOperationControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::OperationEnabled());
+  LONGS_EQUAL(2, drive.enable_drive_count);
+}
+
 TEST(DS402StateMachine, DriveFaultMovesThroughFaultReactionToFault) {
   machine.update();
   machine.setControlWord(kShutdownControlWord);
@@ -137,6 +177,18 @@ TEST(DS402StateMachine, DriveFaultMovesThroughFaultReactionToFault) {
   CHECK_TRUE(machine.update() == ds402::State::FaultReactionActive());
 
   drive.enable_power_status = ds402::TransitionStatus::kFinished;
+  CHECK_TRUE(machine.update() == ds402::State::Fault());
+  LONGS_EQUAL(1, drive.handle_fault_count);
+}
+
+TEST(DS402StateMachine, StateActionFaultMovesToFaultReactionActive) {
+  machine.update();
+  drive.state_action_status = ds402::TransitionStatus::kFault;
+
+  CHECK_TRUE(machine.update() == ds402::State::FaultReactionActive());
+  LONGS_EQUAL(2, drive.state_action_count);
+
+  drive.state_action_status = ds402::TransitionStatus::kFinished;
   CHECK_TRUE(machine.update() == ds402::State::Fault());
   LONGS_EQUAL(1, drive.handle_fault_count);
 }
@@ -162,16 +214,143 @@ TEST(DS402StateMachine, FaultResetRequiresRisingEdgeOfControlwordBit7) {
 }
 
 TEST(DS402StateMachine, QuickStopFromOperationEnabledActivatesQuickStop) {
-  machine.update();
-  machine.setControlWord(kShutdownControlWord);
-  machine.update();
-  machine.setControlWord(kSwitchOnControlWord);
-  machine.update();
-  machine.setControlWord(kEnableOperationControlWord);
-  machine.update();
+  moveToOperationEnabled(machine);
 
   machine.setControlWord(kQuickStopControlWord);
 
   CHECK_TRUE(machine.update() == ds402::State::QuickStopActive());
   LONGS_EQUAL(1, drive.quick_stop_count);
+}
+
+TEST(DS402StateMachine, DisableOperationFromOperationEnabledReturnsToSwitchedOn) {
+  moveToOperationEnabled(machine);
+
+  machine.setControlWord(kSwitchOnControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::SwitchedOn());
+  LONGS_EQUAL(1, drive.disable_drive_count);
+}
+
+TEST(DS402StateMachine, ShutdownFromOperationEnabledReturnsToReadyToSwitchOn) {
+  moveToOperationEnabled(machine);
+
+  machine.setControlWord(kShutdownControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::ReadyToSwitchOn());
+  LONGS_EQUAL(1, drive.disable_drive_count);
+  LONGS_EQUAL(1, drive.disable_power_count);
+}
+
+TEST(DS402StateMachine, DisableVoltageFromOperationEnabledReturnsToSwitchOnDisabled) {
+  moveToOperationEnabled(machine);
+
+  machine.setControlWord(kDisableVoltageControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::SwitchOnDisabled());
+  LONGS_EQUAL(1, drive.disable_drive_count);
+  LONGS_EQUAL(1, drive.disable_power_count);
+}
+
+TEST(DS402StateMachine, DisableVoltageFromReadyToSwitchOnReturnsToSwitchOnDisabled) {
+  moveToReadyToSwitchOn(machine);
+
+  machine.setControlWord(kDisableVoltageControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::SwitchOnDisabled());
+  LONGS_EQUAL(1, drive.disable_power_count);
+}
+
+TEST(DS402StateMachine, EnableOperationFromQuickStopActiveReturnsToOperationEnabled) {
+  moveToQuickStopActive(machine);
+
+  machine.setControlWord(kEnableOperationControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::OperationEnabled());
+  LONGS_EQUAL(2, drive.enable_drive_count);
+}
+
+TEST(DS402StateMachine, DisableVoltageFromQuickStopActiveReturnsToSwitchOnDisabled) {
+  moveToQuickStopActive(machine);
+
+  machine.setControlWord(kDisableVoltageControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::SwitchOnDisabled());
+  LONGS_EQUAL(1, drive.disable_drive_count);
+  LONGS_EQUAL(1, drive.disable_power_count);
+}
+
+TEST(DS402StateMachine, StatusWordVoltageEnabledBitMatchesPoweredStates) {
+  machine.update();
+  LONGS_EQUAL(static_cast<uint16_t>(ds402::State::SwitchOnDisabled()),
+              machine.getStatusWord());
+
+  machine.setControlWord(kShutdownControlWord);
+  machine.update();
+  LONGS_EQUAL(static_cast<uint16_t>(ds402::State::ReadyToSwitchOn()),
+              machine.getStatusWord());
+
+  machine.setControlWord(kSwitchOnControlWord);
+  machine.update();
+  LONGS_EQUAL(static_cast<uint16_t>(ds402::State::SwitchedOn()) |
+                  ds402::kStatusWordVoltageEnabledMask,
+              machine.getStatusWord());
+
+  machine.setControlWord(kEnableOperationControlWord);
+  machine.update();
+  LONGS_EQUAL(static_cast<uint16_t>(ds402::State::OperationEnabled()) |
+                  ds402::kStatusWordVoltageEnabledMask,
+              machine.getStatusWord());
+
+  machine.setControlWord(kQuickStopControlWord);
+  machine.update();
+  LONGS_EQUAL(static_cast<uint16_t>(ds402::State::QuickStopActive()) |
+                  ds402::kStatusWordVoltageEnabledMask,
+              machine.getStatusWord());
+
+  machine.requestFault();
+  LONGS_EQUAL(static_cast<uint16_t>(ds402::State::FaultReactionActive()) |
+                  ds402::kStatusWordVoltageEnabledMask,
+              machine.getStatusWord());
+
+  machine.update();
+  LONGS_EQUAL(static_cast<uint16_t>(ds402::State::Fault()),
+              machine.getStatusWord());
+}
+
+TEST(DS402StateMachine, InvalidCommandDoesNotChangeState) {
+  machine.update();
+
+  machine.setControlWord(kEnableOperationControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::SwitchOnDisabled());
+  LONGS_EQUAL(0, drive.enable_power_count);
+  LONGS_EQUAL(0, drive.enable_drive_count);
+}
+
+TEST(DS402StateMachine, FaultIgnoresCommandsExceptFaultReset) {
+  machine.update();
+  machine.requestFault();
+  CHECK_TRUE(machine.update() == ds402::State::Fault());
+
+  machine.setControlWord(kShutdownControlWord);
+  CHECK_TRUE(machine.update() == ds402::State::Fault());
+
+  machine.setControlWord(kSwitchOnControlWord);
+  CHECK_TRUE(machine.update() == ds402::State::Fault());
+
+  machine.setControlWord(kEnableOperationControlWord);
+  CHECK_TRUE(machine.update() == ds402::State::Fault());
+}
+
+TEST(DS402StateMachine, FaultHandlingOngoingHoldsFaultReactionActive) {
+  machine.update();
+  machine.requestFault();
+  drive.handle_fault_status = ds402::TransitionStatus::kOngoing;
+
+  CHECK_TRUE(machine.update() == ds402::State::FaultReactionActive());
+  LONGS_EQUAL(1, drive.handle_fault_count);
+
+  drive.handle_fault_status = ds402::TransitionStatus::kFinished;
+  CHECK_TRUE(machine.update() == ds402::State::Fault());
+  LONGS_EQUAL(2, drive.handle_fault_count);
 }
