@@ -62,6 +62,7 @@ void writeObserverResponseCsv(const char* file_name, const std::array<float, 102
 
 TEST(MorimotoObserver, ValidatesConfigValues)
 {
+    const auto default_config = ObserverConfig_t<float>::createDefault(20000.0f);
     CHECK_TRUE(ObserverConfig_t<float>::isBandwidthValid(300.0f));
     CHECK_TRUE(ObserverConfig_t<float>::isDampingRatioValid(1.0f));
     CHECK_TRUE(
@@ -83,6 +84,9 @@ TEST(MorimotoObserver, ValidatesConfigValues)
          .damping_ratio = 1.0f,
          .velocity_lpf_cutoff_hz = 10001.0f},
         20000.0f));
+    DOUBLES_EQUAL(1000.0, default_config.bandwidth, 1e-6);
+    DOUBLES_EQUAL(1.0, default_config.damping_ratio, 1e-6);
+    DOUBLES_EQUAL(200.0, default_config.velocity_lpf_cutoff_hz, 1e-6);
 }
 
 TEST(MorimotoObserver, RejectsInvalidObserverBandwidth)
@@ -153,6 +157,21 @@ TEST(MorimotoObserver, SetConfigAppliesValidConfig)
     DOUBLES_EQUAL(200.0, config.velocity_lpf_cutoff_hz, 1e-6);
 }
 
+TEST(MorimotoObserver, ConstructorSanitizesInvalidArguments)
+{
+    morimoto_observer::Observer<float> observer(INFINITY, INFINITY, NAN);
+
+    const auto config = observer.getConfig();
+    DOUBLES_EQUAL(1000.0, config.bandwidth, 1e-6);
+    DOUBLES_EQUAL(1.0, config.damping_ratio, 1e-6);
+    DOUBLES_EQUAL(200.0, config.velocity_lpf_cutoff_hz, 1e-6);
+
+    observer.update(1.0f);
+
+    CHECK_TRUE(std::isfinite(observer.getPos()));
+    CHECK_TRUE(std::isfinite(observer.getVel()));
+}
+
 TEST(MorimotoObserver, UpdateAdvancesObserverState)
 {
     morimoto_observer::Observer<float> observer(300.0f, 100.0f, 0.00005f);
@@ -160,6 +179,17 @@ TEST(MorimotoObserver, UpdateAdvancesObserverState)
     observer.update(1.0f);
 
     CHECK_TRUE(observer.getPos() > 0.0f);
+}
+
+TEST(MorimotoObserver, ResetClearsObserverState)
+{
+    morimoto_observer::Observer<float> observer(300.0f, 100.0f, 0.00005f);
+
+    observer.update(1.0f);
+    observer.reset();
+
+    DOUBLES_EQUAL(0.0, observer.getPos(), 1e-6);
+    DOUBLES_EQUAL(0.0, observer.getVel(), 1e-6);
 }
 
 TEST(MorimotoObserver, WritesStepResponseCsv)
