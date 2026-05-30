@@ -110,6 +110,27 @@ TEST_GROUP(DS402StateMachine) {
 TEST_GROUP(DS402ModeOfOperation) {
 };
 
+TEST_GROUP(DS402HomingMethod) {
+};
+
+TEST(DS402HomingMethod, FactoriesExposeSupportedHomingValues) {
+  LONGS_EQUAL(0, static_cast<int8_t>(ds402::HomingMethod::None()));
+  LONGS_EQUAL(33, static_cast<int8_t>(ds402::HomingMethod::IndexPositive()));
+  LONGS_EQUAL(34, static_cast<int8_t>(ds402::HomingMethod::IndexNegative()));
+  LONGS_EQUAL(-127, static_cast<int8_t>(ds402::HomingMethod::Unknown()));
+}
+
+TEST(DS402HomingMethod, FromRawValueMapsKnownValuesAndRejectsUnknownValues) {
+  CHECK_TRUE(ds402::HomingMethod::FromRawValue(0) ==
+             ds402::HomingMethod::None());
+  CHECK_TRUE(ds402::HomingMethod::FromRawValue(33) ==
+             ds402::HomingMethod::IndexPositive());
+  CHECK_TRUE(ds402::HomingMethod::FromRawValue(34) ==
+             ds402::HomingMethod::IndexNegative());
+  CHECK_TRUE(ds402::HomingMethod::FromRawValue(35) ==
+             ds402::HomingMethod::Unknown());
+}
+
 TEST(DS402ModeOfOperation, FactoriesExposeCiA402AndVendorSpecificValues) {
   LONGS_EQUAL(-11, static_cast<int8_t>(
                        ds402::ModeOfOperation::CalibrateSinCosEncoder()));
