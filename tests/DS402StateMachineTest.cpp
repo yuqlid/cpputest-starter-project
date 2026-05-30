@@ -1,7 +1,7 @@
-#include "CppUTest/TestHarness.h"
-
 #include <cstdint>
 
+#include "CppUTest/TestHarness.h"
+#include "cia402_homing.hpp"
 #include "ds402_state_machine.hpp"
 
 namespace {
@@ -25,14 +25,22 @@ class FakeDS402Drive final : public ds402::DriveInterface {
   int state_action_count = 0;
   ds402::State last_action_state = ds402::State::NotReadyToSwitchOn();
 
-  ds402::TransitionStatus initialize_status = ds402::TransitionStatus::kFinished;
-  ds402::TransitionStatus enable_power_status = ds402::TransitionStatus::kFinished;
-  ds402::TransitionStatus disable_power_status = ds402::TransitionStatus::kFinished;
-  ds402::TransitionStatus enable_drive_status = ds402::TransitionStatus::kFinished;
-  ds402::TransitionStatus quick_stop_status = ds402::TransitionStatus::kFinished;
-  ds402::TransitionStatus disable_drive_status = ds402::TransitionStatus::kFinished;
-  ds402::TransitionStatus handle_fault_status = ds402::TransitionStatus::kFinished;
-  ds402::TransitionStatus state_action_status = ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus initialize_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus enable_power_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus disable_power_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus enable_drive_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus quick_stop_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus disable_drive_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus handle_fault_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus state_action_status =
+      ds402::TransitionStatus::kFinished;
 
   ds402::TransitionStatus initialize() override {
     ++initialize_count;
@@ -107,11 +115,9 @@ TEST_GROUP(DS402StateMachine) {
   ds402::StateMachine machine{drive};
 };
 
-TEST_GROUP(DS402ModeOfOperation) {
-};
+TEST_GROUP(DS402ModeOfOperation){};
 
-TEST_GROUP(DS402HomingMethod) {
-};
+TEST_GROUP(DS402HomingMethod){};
 
 TEST(DS402HomingMethod, FactoriesExposeSupportedHomingValues) {
   LONGS_EQUAL(0, static_cast<int8_t>(ds402::HomingMethod::None()));
@@ -134,8 +140,8 @@ TEST(DS402HomingMethod, FromRawValueMapsKnownValuesAndRejectsUnknownValues) {
 TEST(DS402ModeOfOperation, FactoriesExposeCiA402AndVendorSpecificValues) {
   LONGS_EQUAL(-11, static_cast<int8_t>(
                        ds402::ModeOfOperation::CalibrateSinCosEncoder()));
-  LONGS_EQUAL(-9, static_cast<int8_t>(
-                      ds402::ModeOfOperation::CalibrateAbsEncoder()));
+  LONGS_EQUAL(
+      -9, static_cast<int8_t>(ds402::ModeOfOperation::CalibrateAbsEncoder()));
   LONGS_EQUAL(-7, static_cast<int8_t>(
                       ds402::ModeOfOperation::CalibrateIncrementalEncoder()));
   LONGS_EQUAL(-5, static_cast<int8_t>(ds402::ModeOfOperation::MeasureFlux()));
@@ -148,8 +154,7 @@ TEST(DS402ModeOfOperation, FactoriesExposeCiA402AndVendorSpecificValues) {
               static_cast<int8_t>(ds402::ModeOfOperation::ProfilePosition()));
   LONGS_EQUAL(3,
               static_cast<int8_t>(ds402::ModeOfOperation::ProfileVelocity()));
-  LONGS_EQUAL(4,
-              static_cast<int8_t>(ds402::ModeOfOperation::ProfileTorque()));
+  LONGS_EQUAL(4, static_cast<int8_t>(ds402::ModeOfOperation::ProfileTorque()));
   LONGS_EQUAL(6, static_cast<int8_t>(ds402::ModeOfOperation::Homing()));
   LONGS_EQUAL(8, static_cast<int8_t>(
                      ds402::ModeOfOperation::CyclicSynchronousPosition()));
@@ -170,7 +175,8 @@ TEST(DS402ModeOfOperation, FromRawValueMapsKnownValuesAndRejectsUnknownValues) {
              ds402::ModeOfOperation::Unknown());
 }
 
-TEST(DS402StateMachine, InitialUpdateInitializesDriveAndMovesToSwitchOnDisabled) {
+TEST(DS402StateMachine,
+     InitialUpdateInitializesDriveAndMovesToSwitchOnDisabled) {
   CHECK_TRUE(machine.getState() == ds402::State::NotReadyToSwitchOn());
 
   const ds402::State state = machine.update();
@@ -285,7 +291,8 @@ TEST(DS402StateMachine, QuickStopFromOperationEnabledActivatesQuickStop) {
   LONGS_EQUAL(1, drive.quick_stop_count);
 }
 
-TEST(DS402StateMachine, DisableOperationFromOperationEnabledReturnsToSwitchedOn) {
+TEST(DS402StateMachine,
+     DisableOperationFromOperationEnabledReturnsToSwitchedOn) {
   moveToOperationEnabled(machine);
 
   machine.setControlWord(kSwitchOnControlWord);
@@ -304,7 +311,8 @@ TEST(DS402StateMachine, ShutdownFromOperationEnabledReturnsToReadyToSwitchOn) {
   LONGS_EQUAL(1, drive.disable_power_count);
 }
 
-TEST(DS402StateMachine, DisableVoltageFromOperationEnabledReturnsToSwitchOnDisabled) {
+TEST(DS402StateMachine,
+     DisableVoltageFromOperationEnabledReturnsToSwitchOnDisabled) {
   moveToOperationEnabled(machine);
 
   machine.setControlWord(kDisableVoltageControlWord);
@@ -314,7 +322,8 @@ TEST(DS402StateMachine, DisableVoltageFromOperationEnabledReturnsToSwitchOnDisab
   LONGS_EQUAL(1, drive.disable_power_count);
 }
 
-TEST(DS402StateMachine, DisableVoltageFromReadyToSwitchOnReturnsToSwitchOnDisabled) {
+TEST(DS402StateMachine,
+     DisableVoltageFromReadyToSwitchOnReturnsToSwitchOnDisabled) {
   moveToReadyToSwitchOn(machine);
 
   machine.setControlWord(kDisableVoltageControlWord);
@@ -323,7 +332,8 @@ TEST(DS402StateMachine, DisableVoltageFromReadyToSwitchOnReturnsToSwitchOnDisabl
   LONGS_EQUAL(1, drive.disable_power_count);
 }
 
-TEST(DS402StateMachine, EnableOperationFromQuickStopActiveReturnsToOperationEnabled) {
+TEST(DS402StateMachine,
+     EnableOperationFromQuickStopActiveReturnsToOperationEnabled) {
   moveToQuickStopActive(machine);
 
   machine.setControlWord(kEnableOperationControlWord);
@@ -332,7 +342,8 @@ TEST(DS402StateMachine, EnableOperationFromQuickStopActiveReturnsToOperationEnab
   LONGS_EQUAL(2, drive.enable_drive_count);
 }
 
-TEST(DS402StateMachine, DisableVoltageFromQuickStopActiveReturnsToSwitchOnDisabled) {
+TEST(DS402StateMachine,
+     DisableVoltageFromQuickStopActiveReturnsToSwitchOnDisabled) {
   moveToQuickStopActive(machine);
 
   machine.setControlWord(kDisableVoltageControlWord);
