@@ -9,7 +9,7 @@
 #include "motor/motor_dji_m2006.hpp"
 #include "motor/motor_maxon_ex4pole.hpp"
 #include "motor_driver/drv8316cr_util.hpp"
-#include "ringbufwithdma.hpp"
+#include "dma/ring_buffer.hpp"
 #include "utils/atan2.hpp"
 
 namespace {
@@ -78,47 +78,51 @@ TEST(MotorConfig, RejectsZeroNegativeAndNonFiniteValues)
     CHECK_FALSE(Motor<float>::isConfigValid({7, 0.1f, INFINITY, 0.01f}));
 }
 
-TEST_GROUP(RingBufferWithDma)
+TEST_GROUP(DmaRingBuffer)
 {
 };
 
-TEST(RingBufferWithDma, ReportsAvailableDataFromDmaCounter)
+TEST(DmaRingBuffer, ReportsAvailableDataFromDmaRemainingCount)
 {
-    volatile uint32_t dmaCounter = 8;
-    ringBufferWithDma<uint8_t, 8> ring(dmaCounter);
+    driver::dma::RingBuffer<uint8_t, 8> ring;
 
-    CHECK_TRUE(ring.isEmpty());
+    const std::size_t emptyHead = ring.producerIndexFromRemaining(8);
+    CHECK_TRUE(ring.isEmpty(emptyHead));
 
-    dmaCounter = 5;
-    LONGS_EQUAL(3, ring.getAvailableDataSize());
-    CHECK_FALSE(ring.isEmpty());
-    CHECK_FALSE(ring.isFull());
+    const std::size_t head = ring.producerIndexFromRemaining(5);
+    LONGS_EQUAL(3, ring.available(head));
+    CHECK_FALSE(ring.isEmpty(head));
 
-    dmaCounter = 0;
-    CHECK_TRUE(ring.isEmpty());
+    const std::size_t wrappedHead = ring.producerIndexFromRemaining(0);
+    CHECK_TRUE(ring.isEmpty(wrappedHead));
 }
 
-TEST(RingBufferWithDma, DequeueAdvancesTailAndWraps)
+TEST(DmaRingBuffer, TryPopAdvancesTailAndWraps)
 {
-    volatile uint32_t dmaCounter = 0;
-    ringBufferWithDma<uint8_t, 4> ring(dmaCounter);
-    uint8_t* buffer = ring.bufferPointer();
+    driver::dma::RingBuffer<uint8_t, 4> ring;
+    uint8_t* buffer = ring.data();
     buffer[0] = 10;
     buffer[1] = 11;
     buffer[2] = 12;
     buffer[3] = 13;
+    uint8_t item = 0;
 
-    dmaCounter = 1;
-    LONGS_EQUAL(3, ring.getAvailableDataSize());
-    LONGS_EQUAL(10, ring.dequeue());
-    LONGS_EQUAL(11, ring.dequeue());
-    LONGS_EQUAL(1, ring.getAvailableDataSize());
+    std::size_t head = ring.producerIndexFromRemaining(1);
+    LONGS_EQUAL(3, ring.available(head));
+    CHECK_TRUE(ring.tryPop(item, head));
+    LONGS_EQUAL(10, item);
+    CHECK_TRUE(ring.tryPop(item, head));
+    LONGS_EQUAL(11, item);
+    LONGS_EQUAL(1, ring.available(head));
 
-    dmaCounter = 3;
-    LONGS_EQUAL(3, ring.getAvailableDataSize());
-    LONGS_EQUAL(12, ring.dequeue());
-    LONGS_EQUAL(13, ring.dequeue());
-    LONGS_EQUAL(10, ring.dequeue());
+    head = ring.producerIndexFromRemaining(3);
+    LONGS_EQUAL(3, ring.available(head));
+    CHECK_TRUE(ring.tryPop(item, head));
+    LONGS_EQUAL(12, item);
+    CHECK_TRUE(ring.tryPop(item, head));
+    LONGS_EQUAL(13, item);
+    CHECK_TRUE(ring.tryPop(item, head));
+    LONGS_EQUAL(10, item);
 }
 
 TEST_GROUP(Atan2Approx)

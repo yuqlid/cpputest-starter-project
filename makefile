@@ -89,6 +89,7 @@ INCLUDE_DIRS += tests/app-fakes
 INCLUDE_DIRS += ../App
 INCLUDE_DIRS += ../App/cia402
 INCLUDE_DIRS += ../App/utils
+INCLUDE_DIRS += ../stm32g4_driver
 
 
 # --- CPPUTEST_OBJS_DIR ---
