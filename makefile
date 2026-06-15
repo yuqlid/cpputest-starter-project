@@ -37,6 +37,7 @@ endif
 #
 SRC_FILES += example-src/Example.c
 SRC_FILES += ../App/cia402/ds402_state_machine.cpp
+SRC_FILES += ../App/controller/motion_observer_manager.cpp
 #SRC_FILES += ../App/controller/observer.cpp
 SRC_DIRS += example-platform
 
@@ -88,6 +89,7 @@ INCLUDE_DIRS += tests/fff
 INCLUDE_DIRS += tests/app-fakes
 INCLUDE_DIRS += ../App
 INCLUDE_DIRS += ../App/cia402
+INCLUDE_DIRS += ../App/controller
 INCLUDE_DIRS += ../App/utils
 INCLUDE_DIRS += ../stm32g4_driver
 
