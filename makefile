@@ -63,6 +63,7 @@ TEST_SRC_FILES += tests/ParkTransformTest.cpp
 TEST_SRC_FILES += tests/SinCosTest.cpp
 TEST_SRC_FILES += tests/TestOutputPath.cpp
 TEST_SRC_FILES += tests/TrajectoryTest.cpp
+TEST_SRC_FILES += tests/VelocityControllerTest.cpp
 TEST_SRC_DIRS += tests/io-cppumock
 TEST_SRC_DIRS += tests/printf-spy
 #
