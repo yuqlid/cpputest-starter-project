@@ -38,6 +38,8 @@ endif
 SRC_FILES += example-src/Example.c
 SRC_FILES += ../App/cia402/ds402_state_machine.cpp
 SRC_FILES += ../App/controller/motion_observer_manager.cpp
+SRC_FILES += ../App/fault_log/fault_log.cpp
+SRC_FILES += ../App/fault_log/fault_manager.cpp
 #SRC_FILES += ../App/controller/observer.cpp
 SRC_DIRS += example-platform
 
@@ -56,6 +58,7 @@ TEST_SRC_FILES += tests/Atan2ApproxTest.cpp
 TEST_SRC_FILES += tests/ClarkeTransformTest.cpp
 TEST_SRC_FILES += tests/DS402StateMachineTest.cpp
 TEST_SRC_FILES += tests/ExampleTest.cpp
+TEST_SRC_FILES += tests/FaultManagerTest.cpp
 TEST_SRC_FILES += tests/FirstOrderLpfTest.cpp
 TEST_SRC_FILES += tests/MyFirstTest.cpp
 TEST_SRC_FILES += tests/ObserverTest.cpp
@@ -91,7 +94,11 @@ INCLUDE_DIRS += tests/app-fakes
 INCLUDE_DIRS += ../App
 INCLUDE_DIRS += ../App/cia402
 INCLUDE_DIRS += ../App/controller
+INCLUDE_DIRS += ../App/current_sense
+INCLUDE_DIRS += ../App/fault_log
+INCLUDE_DIRS += ../App/three_phase_pwm
 INCLUDE_DIRS += ../App/utils
+INCLUDE_DIRS += ../App/voltage_sense
 INCLUDE_DIRS += ../stm32g4_driver
 
 
