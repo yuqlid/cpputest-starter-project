@@ -16,6 +16,7 @@ constexpr uint16_t kFaultResetControlWord = 0b10000000;
 class FakeDS402Drive final : public ds402::DriveInterface {
  public:
   int initialize_count = 0;
+  int prepare_to_switch_on_count = 0;
   int enable_power_count = 0;
   int disable_power_count = 0;
   int enable_drive_count = 0;
@@ -26,6 +27,8 @@ class FakeDS402Drive final : public ds402::DriveInterface {
   ds402::State last_action_state = ds402::State::NotReadyToSwitchOn();
 
   ds402::TransitionStatus initialize_status =
+      ds402::TransitionStatus::kFinished;
+  ds402::TransitionStatus prepare_to_switch_on_status =
       ds402::TransitionStatus::kFinished;
   ds402::TransitionStatus enable_power_status =
       ds402::TransitionStatus::kFinished;
@@ -45,6 +48,11 @@ class FakeDS402Drive final : public ds402::DriveInterface {
   ds402::TransitionStatus initialize() override {
     ++initialize_count;
     return initialize_status;
+  }
+
+  ds402::TransitionStatus prepareToSwitchOn() override {
+    ++prepare_to_switch_on_count;
+    return prepare_to_switch_on_status;
   }
 
   ds402::TransitionStatus enablePower() override {
@@ -192,6 +200,7 @@ TEST(DS402StateMachine, NormalControlwordSequenceReachesOperationEnabled) {
 
   machine.setControlWord(kShutdownControlWord);
   CHECK_TRUE(machine.update() == ds402::State::ReadyToSwitchOn());
+  LONGS_EQUAL(1, drive.prepare_to_switch_on_count);
 
   machine.setControlWord(kSwitchOnControlWord);
   CHECK_TRUE(machine.update() == ds402::State::SwitchedOn());
@@ -205,6 +214,32 @@ TEST(DS402StateMachine, NormalControlwordSequenceReachesOperationEnabled) {
       static_cast<uint16_t>(ds402::State::OperationEnabled()) |
       ds402::kStatusWordVoltageEnabledMask;
   LONGS_EQUAL(expected_status_word, machine.getStatusWord());
+}
+
+TEST(DS402StateMachine, OngoingPrepareToSwitchOnHoldsSwitchOnDisabled) {
+  machine.update();
+
+  drive.prepare_to_switch_on_status = ds402::TransitionStatus::kOngoing;
+  machine.setControlWord(kShutdownControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::SwitchOnDisabled());
+  LONGS_EQUAL(1, drive.prepare_to_switch_on_count);
+
+  drive.prepare_to_switch_on_status = ds402::TransitionStatus::kFinished;
+  machine.setControlWord(kShutdownControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::ReadyToSwitchOn());
+  LONGS_EQUAL(2, drive.prepare_to_switch_on_count);
+}
+
+TEST(DS402StateMachine, PrepareToSwitchOnFaultMovesToFaultReactionActive) {
+  machine.update();
+
+  drive.prepare_to_switch_on_status = ds402::TransitionStatus::kFault;
+  machine.setControlWord(kShutdownControlWord);
+
+  CHECK_TRUE(machine.update() == ds402::State::FaultReactionActive());
+  LONGS_EQUAL(1, drive.prepare_to_switch_on_count);
 }
 
 TEST(DS402StateMachine, OngoingDriveTransitionHoldsCurrentState) {
