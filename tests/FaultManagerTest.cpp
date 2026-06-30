@@ -69,6 +69,9 @@ TEST(FaultManager, TriggerFaultStopsPwmAndStoresFault) {
   LONGS_EQUAL(1, zero_duty_count);
   LONGS_EQUAL(1, pwm_idle_count);
   CHECK_TRUE(hasActiveFault());
+  LONGS_EQUAL(static_cast<long>(ErrorCode::Code::kOverCurrent),
+              static_cast<long>(
+                  static_cast<ErrorCode::Code>(getActiveFaultCode())));
   UNSIGNED_LONGS_EQUAL(1, getFaultLog().size());
   LONGS_EQUAL(static_cast<long>(ErrorCode::Code::kOverCurrent),
               static_cast<long>(getFaultLog().latest().error_code));
@@ -82,6 +85,9 @@ TEST(FaultManager, TriggerNoErrorDoesNothing) {
   LONGS_EQUAL(0, zero_duty_count);
   LONGS_EQUAL(0, pwm_idle_count);
   CHECK_FALSE(hasActiveFault());
+  LONGS_EQUAL(static_cast<long>(ErrorCode::Code::kNoError),
+              static_cast<long>(
+                  static_cast<ErrorCode::Code>(getActiveFaultCode())));
   CHECK_TRUE(getFaultLog().empty());
 }
 
@@ -91,6 +97,9 @@ TEST(FaultManager, NotifyRecoveredClearsFaultButPreservesHistory) {
   notifyFaultRecovered();
 
   CHECK_FALSE(hasActiveFault());
+  LONGS_EQUAL(static_cast<long>(ErrorCode::Code::kNoError),
+              static_cast<long>(
+                  static_cast<ErrorCode::Code>(getActiveFaultCode())));
   UNSIGNED_LONGS_EQUAL(1, getFaultLog().size());
 }
 
@@ -100,6 +109,9 @@ TEST(FaultManager, ClearHistoryPreservesActiveFault) {
   getFaultLog().clearHistory();
 
   CHECK_TRUE(hasActiveFault());
+  LONGS_EQUAL(static_cast<long>(ErrorCode::Code::kOverCurrent),
+              static_cast<long>(
+                  static_cast<ErrorCode::Code>(getActiveFaultCode())));
   CHECK_TRUE(getFaultLog().empty());
 }
 
@@ -110,6 +122,16 @@ TEST(FaultManager, StoreNoErrorDoesNotRecoverActiveFault) {
 
   CHECK_TRUE(hasActiveFault());
   UNSIGNED_LONGS_EQUAL(1, getFaultLog().size());
+}
+
+TEST(FaultManager, NewFaultUpdatesActiveFaultCode) {
+  triggerFault(ErrorCode::OverCurrent());
+  triggerFault(ErrorCode::DCLinkUnderVoltage());
+
+  LONGS_EQUAL(static_cast<long>(ErrorCode::Code::kDCLinkUnderVoltage),
+              static_cast<long>(
+                  static_cast<ErrorCode::Code>(getActiveFaultCode())));
+  UNSIGNED_LONGS_EQUAL(2, getFaultLog().size());
 }
 
 TEST(FaultManager, DuplicateActiveFaultIsNotStoredTwice) {
