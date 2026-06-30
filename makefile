@@ -36,6 +36,7 @@ endif
 # production code C and CPP files.
 #
 SRC_FILES += example-src/Example.c
+SRC_FILES += ../App/cia402/ds402_drive.cpp
 SRC_FILES += ../App/cia402/ds402_state_machine.cpp
 SRC_FILES += ../App/controller/motion_observer_manager.cpp
 SRC_FILES += ../App/fault_log/fault_log.cpp
@@ -58,6 +59,7 @@ TEST_SRC_FILES += tests/Atan2ApproxTest.cpp
 TEST_SRC_FILES += tests/ClarkeTransformTest.cpp
 TEST_SRC_FILES += tests/Cia402ManagerTest.cpp
 TEST_SRC_FILES += tests/DS402StateMachineTest.cpp
+TEST_SRC_FILES += tests/Ds402DriveTest.cpp
 TEST_SRC_FILES += tests/ExampleTest.cpp
 TEST_SRC_FILES += tests/FaultManagerTest.cpp
 TEST_SRC_FILES += tests/FirstOrderLpfTest.cpp
