@@ -23,6 +23,7 @@ lib
 *_tests.txt
 gcov*.html
 ErrorLogs
+Logs
 testResults
 .metadata
 Debug

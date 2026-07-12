@@ -57,6 +57,7 @@ TEST_SRC_FILES += tests/AllTests.cpp
 TEST_SRC_FILES += tests/AppCoreTest.cpp
 TEST_SRC_FILES += tests/Atan2ApproxTest.cpp
 TEST_SRC_FILES += tests/ClarkeTransformTest.cpp
+TEST_SRC_FILES += tests/DqCurrentControllerTest.cpp
 TEST_SRC_FILES += tests/Cia402ManagerTest.cpp
 TEST_SRC_FILES += tests/DS402StateMachineTest.cpp
 TEST_SRC_FILES += tests/Ds402DriveTest.cpp
